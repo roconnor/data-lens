@@ -77,25 +77,25 @@ l ^/= r = l ^%= (/ r)
 maybeLens :: PartialLens (Maybe a) a
 maybeLens = PLens $ \ma -> do
   a <- ma
-  return (StoreT (pure Just) a) 
+  return (store Just a) 
 
 leftLens :: PartialLens (Either a b) a
-leftLens = PLens $ either (Just . StoreT (pure Left)) (const Nothing)
+leftLens = PLens $ either (Just . store Left) (const Nothing)
 
 rightLens :: PartialLens (Either a b) b
-rightLens = PLens $ either (const Nothing) (Just . StoreT (pure Right))
+rightLens = PLens $ either (const Nothing) (Just . store Right)
 
 headLens :: PartialLens [a] a
 headLens = PLens f
  where
   f [] = Nothing
-  f (h:t) = Just (StoreT (pure (:t)) h)
+  f (h:t) = Just (store (:t) h)
 
 tailLens :: PartialLens [a] [a]
 tailLens = PLens f
  where
   f [] = Nothing
-  f (h:t) = Just (StoreT (pure (h:)) t)
+  f (h:t) = Just (store (h:) t)
 
 {- Other Examples
 
