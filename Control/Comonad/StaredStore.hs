@@ -2,9 +2,11 @@ module Control.Comonad.StaredStore where
 
 import Control.Applicative
 import Control.Comonad
+import Control.Comonad.Trans.Class
 import Control.Comonad.Trans.Store
 import Data.Functor.Coproduct
 import Data.Functor.Identity
+import Data.List
 
 newtype StaredStore s a = StaredStore {runStaredStore :: Coproduct Identity (StoreT s (StaredStore s)) a}
 
@@ -33,12 +35,14 @@ fromStore st = StaredStore (right (StoreT (pure g) v))
   (g,v) = runStore st
   
 poss :: StaredStore b a -> [b]
-poss x = coproduct (const []) h . runStaredStore $ x
+poss x = go x []
  where
-  h s = (v:poss g)
+  go :: StaredStore b a -> [b] -> [b]
+  go = coproduct (const id) h . runStaredStore
+  h s = go g . (v:)
    where
     (g, v) = runStoreT s
-    
+
 seekss :: (b -> b) -> StaredStore b a -> StaredStore b a
 seekss f = coproduct (pure . runIdentity) h . runStaredStore
  where

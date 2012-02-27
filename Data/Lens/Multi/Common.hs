@@ -35,5 +35,5 @@ partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . (runPLens l)
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
 
-modPL :: MultiLens a b -> (b -> b) -> a -> a
-modPL (MLens f) g = peekss g . f
+modML :: MultiLens a b -> (b -> b) -> a -> a
+modML (MLens f) g = peekss g . f
