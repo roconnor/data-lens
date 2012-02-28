@@ -38,6 +38,14 @@ getPL (PLens f) a = pos <$> f a
 getorPL :: PartialLens a b -> a -> b -> b
 getorPL l a b = fromMaybe b (getPL l a)
 
+-- (Monadic) If the PartialLens is null, then return the given default value. Only the first effect is run.
+getorMPL :: Monad m => PartialLens a b -> m a -> m b -> m b
+getorMPL l a b = 
+  do r <- a
+     case getPL l r of
+       Just c -> return c
+       Nothing -> b
+
 -- If the PartialLens is null, then return the target object, otherwise run the function on its projection.
 withPL :: PartialLens a b -> (b -> a) -> a -> a
 withPL l f = flip maybe f <*> getPL l
@@ -74,6 +82,14 @@ infixr 0 ^|$
 infixr 9 ^|.
 (^|.) :: a -> PartialLens a b -> b -> b
 (^|.) = flip getorPL
+
+infixr 0 ^!$
+(^!$) :: Monad m => PartialLens a b -> m a -> m b -> m b
+(^!$) = getorMPL
+
+infixr 9 ^!.
+(^!.) :: Monad m => m a -> PartialLens a b -> m b -> m b
+(^!.) = flip getorMPL
 
 infixr 0 ^-$
 (^-$) :: PartialLens a b -> (b -> a) -> a -> a
