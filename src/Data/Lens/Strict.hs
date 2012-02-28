@@ -14,6 +14,7 @@ module Data.Lens.Strict
   , focus          -- modify -- :: Monad m => Lens a b -> StateT m b c -> StateT m a c
   ) where
 
+import Control.Arrow
 import Control.Comonad.Trans.Store
 import Control.Monad.Trans.State.Strict
 import Control.Monad (liftM)
@@ -29,7 +30,7 @@ access (Lens f) = gets (pos . f)
 
 focus :: Monad m => Lens a b -> StateT b m c -> StateT a m c
 focus (Lens f) (StateT g) = StateT $ \a -> case f a of
-  StoreT (Identity h) b -> liftM (\(c, b') -> (c, h b')) (g b)
+  StoreT (Identity h) b -> liftM (second h) (g b)
 
 infixr 4 ~=, !=
 

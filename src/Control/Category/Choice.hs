@@ -17,6 +17,6 @@ instance Choice Lens where
 instance Choice PartialLens where
   PLens f ||| PLens g =
     PLens $ either
-      (\a -> fmap (\x -> store (Left . flip peek x) (pos x)) (f a))
-      (\b -> fmap (\y -> store (Right . flip peek y) (pos y)) (g b))
+      (fmap (\x -> store (Left . flip peek x) (pos x)) . f)
+      (fmap (\y -> store (Right . flip peek y) (pos y)) . g)
 

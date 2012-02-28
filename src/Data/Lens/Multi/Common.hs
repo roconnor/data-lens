@@ -30,7 +30,7 @@ totalLens (Lens f) = MLens $ fromStore . f
 
 -- totalLens is a homomorphism of categories; ie a functor.
 partialLens :: PartialLens a b -> MultiLens a b
-partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . (runPLens l)
+partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
