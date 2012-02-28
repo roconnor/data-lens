@@ -2,11 +2,9 @@ module Control.Comonad.StaredStore where
 
 import Control.Applicative
 import Control.Comonad
-import Control.Comonad.Trans.Class
 import Control.Comonad.Trans.Store
 import Data.Functor.Coproduct
 import Data.Functor.Identity
-import Data.List
 
 newtype StaredStore s a = StaredStore {runStaredStore :: Coproduct Identity (StoreT s (StaredStore s)) a}
 

@@ -56,21 +56,27 @@ modPL (PLens f) g a = maybe a (peeks g) (f a)
 -- * Operator API
 
 infixr 0 ^$
+(^$) :: PartialLens a b -> a -> Maybe b
 (^$) = getPL
 
 infixr 9 ^.
+(^.) :: a -> PartialLens a b -> Maybe b
 (^.) = flip getPL
 
 infixr 0 ^|$
+(^|$) :: PartialLens a b -> a -> b -> b
 (^|$) = getorPL
 
 infixr 9 ^|.
+(^|.) :: a -> PartialLens a b -> b -> b
 (^|.) = flip getorPL
 
 infixr 0 ^?$
+(^?$) :: PartialLens a b -> a -> Bool
 (^?$) = isPL
 
 infixr 9 ^?.
+(^?.) :: a -> PartialLens a b -> Bool
 (^?.) = flip isPL
 
 infixr 4 ^=

@@ -48,6 +48,7 @@ library
     Data.Lens.Multi.Common
     -- Data.Lens.Multi.Lazy
     -- Data.Lens.Multi.Strict
+    Control.Comonad.StaredStore
     Control.Category.Choice
     Control.Category.Codiagonal
     Control.Category.Product
