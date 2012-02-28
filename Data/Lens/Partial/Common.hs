@@ -38,6 +38,10 @@ getPL (PLens f) a = pos <$> f a
 getorPL :: PartialLens a b -> a -> b -> b
 getorPL l a b = fromMaybe b (getPL l a)
 
+-- If the Partial is null.
+isPL :: PartialLens a b -> a -> Bool
+isPL l = isJust . getPL l
+
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
 
@@ -62,6 +66,12 @@ infixr 0 ^|$
 
 infixr 9 ^|.
 (^|.) = flip getorPL
+
+infixr 0 ^?$
+(^?$) = isPL
+
+infixr 9 ^?.
+(^?.) = flip isPL
 
 infixr 4 ^=
 (^=) :: PartialLens a b -> b -> a -> a
