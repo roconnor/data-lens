@@ -7,6 +7,7 @@ import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
 import Data.Functor.Identity
 import Data.Functor.Coproduct
+import Data.Maybe
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
@@ -33,6 +34,10 @@ totalLens (Lens f) = PLens (Just . f)
 getPL :: PartialLens a b -> a -> Maybe b
 getPL (PLens f) a = pos <$> f a
 
+-- If the PartialLens is null, then return the given default value.
+getorPL :: PartialLens a b -> a -> b -> b
+getorPL l a b = fromMaybe b (getPL l a)
+
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
 
@@ -51,6 +56,12 @@ infixr 0 ^$
 
 infixr 9 ^.
 (^.) = flip getPL
+
+infixr 0 ^|$
+(^|$) = getorPL
+
+infixr 9 ^|.
+(^|.) = flip getorPL
 
 infixr 4 ^=
 (^=) :: PartialLens a b -> b -> a -> a
