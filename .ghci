@@ -1,0 +1,3 @@
+:l Control.Category.Choice Control.Category.Codiagonal Control.Category.Product Control.Comonad.StaredStore Data.Lens.Common Data.Lens.Lazy Data.Lens.Strict Data.Lens.Multi.Common Data.Lens.Partial.Common Data.Lens.Partial.Lazy
+:set -Wall
+
