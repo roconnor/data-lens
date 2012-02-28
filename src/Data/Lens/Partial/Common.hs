@@ -38,6 +38,10 @@ getPL (PLens f) a = pos <$> f a
 getorPL :: PartialLens a b -> a -> b -> b
 getorPL l a b = fromMaybe b (getPL l a)
 
+-- If the PartialLens is null, then return the target object, otherwise run the function on its projection.
+withPL :: PartialLens a b -> (b -> a) -> a -> a
+withPL l f = flip maybe f <*> getPL l
+
 -- If the Partial is null.
 isPL :: PartialLens a b -> a -> Bool
 isPL l = isJust . getPL l
@@ -70,6 +74,14 @@ infixr 0 ^|$
 infixr 9 ^|.
 (^|.) :: a -> PartialLens a b -> b -> b
 (^|.) = flip getorPL
+
+infixr 0 ^-$
+(^-$) :: PartialLens a b -> (b -> a) -> a -> a
+(^-$) = withPL
+
+infixr 9 ^-.
+(^-.) :: (b -> a) -> PartialLens a b -> a -> a
+(^-.) = flip withPL
 
 infixr 0 ^?$
 (^?$) :: PartialLens a b -> a -> Bool
