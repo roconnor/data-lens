@@ -11,7 +11,7 @@ import Data.Maybe
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
--- A partial lens is a coalgebra for the Coprodcut Identity (Store b) comonad.
+-- A partial lens is a coalgebra for the Coproduct Identity (Store b) comonad.
 runPLens :: PartialLens a b -> a -> (Coproduct Identity (Store b)) a
 runPLens (PLens f) a = maybe (left (Identity a)) right (f a)
 
