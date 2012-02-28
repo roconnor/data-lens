@@ -54,3 +54,7 @@ library
     Control.Category.Product
 
   ghc-options:      -Wall 
+
+  hs-source-dirs:
+                    src
+
