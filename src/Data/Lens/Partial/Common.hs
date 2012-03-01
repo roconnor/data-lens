@@ -54,6 +54,18 @@ withPL l f = flip maybe f <*> getPL l
 isPL :: PartialLens a b -> a -> Bool
 isPL l = isJust . getPL l
 
+anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
+anyPL l p a =
+  case getPL l a of
+    Nothing -> False
+    Just x -> p x
+
+allPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
+allPL l p a =
+  case getPL l a of
+    Nothing -> True
+    Just x -> p x
+
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
 
