@@ -7,10 +7,11 @@ import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
 import Data.Functor.Identity
 import Data.Functor.Coproduct
+import Data.Maybe
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
--- A partial lens is a coalgebra for the Coprodcut Identity (Store b) comonad.
+-- A partial lens is a coalgebra for the Coproduct Identity (Store b) comonad.
 runPLens :: PartialLens a b -> a -> (Coproduct Identity (Store b)) a
 runPLens (PLens f) a = maybe (left (Identity a)) right (f a)
 
@@ -33,6 +34,38 @@ totalLens (Lens f) = PLens (Just . f)
 getPL :: PartialLens a b -> a -> Maybe b
 getPL (PLens f) a = pos <$> f a
 
+-- If the PartialLens is null, then return the given default value.
+getorPL :: PartialLens a b -> a -> b -> b
+getorPL l a b = fromMaybe b (getPL l a)
+
+-- (Monadic) If the PartialLens is null, then return the given default value. Only the first effect is run.
+getorMPL :: Monad m => PartialLens a b -> m a -> m b -> m b
+getorMPL l a b = 
+  do r <- a
+     case getPL l r of
+       Just c -> return c
+       Nothing -> b
+
+-- If the PartialLens is null, then return the target object, otherwise run the function on its projection.
+withPL :: PartialLens a b -> (b -> a) -> a -> a
+withPL l f = flip maybe f <*> getPL l
+
+-- If the Partial is null.
+isPL :: PartialLens a b -> a -> Bool
+isPL l = isJust . getPL l
+
+anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
+anyPL l p a =
+  case getPL l a of
+    Nothing -> False
+    Just x -> p x
+
+allPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
+allPL l p a =
+  case getPL l a of
+    Nothing -> True
+    Just x -> p x
+
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
 
@@ -47,9 +80,11 @@ modPL (PLens f) g a = maybe a (peeks g) (f a)
 -- * Operator API
 
 infixr 0 ^$
+(^$) :: PartialLens a b -> a -> Maybe b
 (^$) = getPL
 
 infixr 9 ^.
+(^.) :: a -> PartialLens a b -> Maybe b
 (^.) = flip getPL
 
 infixr 4 ^=

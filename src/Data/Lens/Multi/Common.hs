@@ -18,9 +18,9 @@ instance Category MultiLens where
    where
     {- this explicit passing of f is here to allow polymorphic recursion while remaining haskell 98 -} 
     composeHelper :: (b -> StaredStore c b) -> StaredStore b d -> StaredStore c d
-    composeHelper f (StaredStore x) = coproduct (pure . runIdentity) h' x
+    composeHelper k (StaredStore x) = coproduct (pure . runIdentity) h' x
      where
-      h' y = composeHelper f v <*> f b
+      h' y = composeHelper k v <*> k b
        where
         (v, b) = runStoreT y
    
@@ -30,7 +30,7 @@ totalLens (Lens f) = MLens $ fromStore . f
 
 -- totalLens is a homomorphism of categories; ie a functor.
 partialLens :: PartialLens a b -> MultiLens a b
-partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . (runPLens l)
+partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
