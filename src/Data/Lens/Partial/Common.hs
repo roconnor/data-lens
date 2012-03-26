@@ -87,38 +87,6 @@ infixr 9 ^.
 (^.) :: a -> PartialLens a b -> Maybe b
 (^.) = flip getPL
 
-infixr 0 ^|$
-(^|$) :: PartialLens a b -> a -> b -> b
-(^|$) = getorPL
-
-infixr 9 ^|.
-(^|.) :: a -> PartialLens a b -> b -> b
-(^|.) = flip getorPL
-
-infixr 0 ^!$
-(^!$) :: Monad m => PartialLens a b -> m a -> m b -> m b
-(^!$) = getorMPL
-
-infixr 9 ^!.
-(^!.) :: Monad m => m a -> PartialLens a b -> m b -> m b
-(^!.) = flip getorMPL
-
-infixr 0 ^-$
-(^-$) :: PartialLens a b -> (b -> a) -> a -> a
-(^-$) = withPL
-
-infixr 9 ^-.
-(^-.) :: (b -> a) -> PartialLens a b -> a -> a
-(^-.) = flip withPL
-
-infixr 0 ^?$
-(^?$) :: PartialLens a b -> a -> Bool
-(^?$) = isPL
-
-infixr 9 ^?.
-(^?.) :: a -> PartialLens a b -> Bool
-(^?.) = flip isPL
-
 infixr 4 ^=
 (^=) :: PartialLens a b -> b -> a -> a
 (^=) = setPL
