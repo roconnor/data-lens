@@ -60,7 +60,7 @@ instance Category Lens where
 
 -- | build a lens out of a getter and setter
 lens :: (a -> b) -> (b -> a -> a) -> Lens a b
-lens get set = Lens $ \a -> store (\b -> set b a) (get a)
+lens get set = Lens $ \a -> store (`set` a) (get a)
 
 -- | build a lens out of an isomorphism
 iso :: (a -> b) -> (b -> a) -> Lens a b
