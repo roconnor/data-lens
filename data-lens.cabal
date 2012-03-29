@@ -4,11 +4,11 @@ version:            3.9.0
 license:            BSD3
 cabal-version:      >= 1.6
 license-file:       LICENSE
-author:             Russell O'Connor & Edward A. Kmett
+author:             Russell O'Connor, Edward A. Kmett & Tony Morris
 maintainer:         Russell O'Connor <roconnor@theorem.ca>
 stability:          provisional
 homepage:           http://github.com/roconnor/data-lens/
-copyright:          Copyright (C) 2008-2012 Edward A. Kmett & Russell O'Connor
+copyright:          Copyright (C) 2008-2012 Edward A. Kmett, Russell O'Connor & Tony Morris
 synopsis:           Haskell 98 Lenses
 description:        Haskell 98 Lenses
 build-type:         Simple
