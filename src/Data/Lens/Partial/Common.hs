@@ -3,6 +3,9 @@ module Data.Lens.Partial.Common where
 import Prelude hiding ((.), id, null)
 import Control.Applicative
 import Control.Category
+import Control.Category.Choice
+import Control.Category.Product
+import Control.Category.Codiagonal
 import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
 import Data.Functor.Identity
@@ -147,3 +150,19 @@ mapPLens k = maybeLens . totalLens (mapLens k)
 intMapPLens :: Int -> PartialLens (IntMap v) v
 intMapPLens k = maybeLens . totalLens (intMapLens k)
 -}
+
+instance Choice PartialLens where
+  PLens f ||| PLens g =
+    PLens $ either
+      (fmap (\x -> store (Left . flip peek x) (pos x)) . f)
+      (fmap (\y -> store (Right . flip peek y) (pos y)) . g)
+
+instance Product PartialLens where
+  PLens f *** PLens g =
+    PLens $ \(a, c) ->
+      do x <- f a
+         y <- g c
+         return $ store (\(b, d) -> (peek b x, peek d y)) (pos x, pos y)
+
+instance Codiagonal PartialLens where
+  codiagonal = id ||| id
