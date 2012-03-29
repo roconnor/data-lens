@@ -130,10 +130,10 @@ tailLens = PLens f
   f [] = Nothing
   f (h:t) = Just (store (h:) t)
 
-getorEmpty :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
-getorEmpty l p a = case getPL l a of
-              Nothing -> mempty
-              Just x  -> p x
+getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
+getorEmptyPL l p a = case getPL l a of
+                       Nothing -> mempty
+                       Just x  -> p x
 
 {- Other Examples
 
