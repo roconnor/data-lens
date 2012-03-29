@@ -1,6 +1,6 @@
 name:               data-lens
 category:           Control, Comonads
-version:            3.9.0
+version:            2.9.0
 license:            BSD3
 cabal-version:      >= 1.6
 license-file:       LICENSE
