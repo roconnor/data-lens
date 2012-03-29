@@ -4,7 +4,7 @@ import Prelude hiding ((.), id, null)
 import Control.Applicative
 import Control.Category
 import Control.Category.Choice
-import Control.Category.Product
+import Control.Category.Split
 import Control.Category.Codiagonal
 import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
@@ -157,7 +157,7 @@ instance Choice PartialLens where
       (fmap (\x -> store (Left . flip peek x) (pos x)) . f)
       (fmap (\y -> store (Right . flip peek y) (pos y)) . g)
 
-instance Product PartialLens where
+instance Split PartialLens where
   PLens f *** PLens g =
     PLens $ \(a, c) ->
       do x <- f a

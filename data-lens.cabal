@@ -47,7 +47,7 @@ library
     -- Data.Lens.Partial.Strict
     Control.Category.Choice
     Control.Category.Codiagonal
-    Control.Category.Product
+    Control.Category.Split
 
   ghc-options:      -Wall 
 
