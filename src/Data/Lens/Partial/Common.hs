@@ -41,13 +41,11 @@ getPL (PLens f) a = pos <$> f a
 getorPL :: PartialLens a b -> a -> b -> b
 getorPL l a b = fromMaybe b (getPL l a)
 
--- (Monadic) If the PartialLens is null, then return the given default value. Only the first effect is run.
-getorMPL :: Monad m => PartialLens a b -> m a -> m b -> m b
-getorMPL l a b = 
-  do r <- a
-     case getPL l r of
-       Just c -> return c
-       Nothing -> b
+-- If the PartialLens is null, then return the given default value.
+getorAPL :: Applicative f => PartialLens a b -> a -> f b -> f b
+getorAPL l a b = case getPL l a of
+                    Just c -> pure c
+                    Nothing -> b
 
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
