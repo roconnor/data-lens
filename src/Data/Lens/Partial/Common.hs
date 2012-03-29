@@ -1,6 +1,6 @@
 module Data.Lens.Partial.Common where
 
-import Prelude hiding ((.), id, null)
+import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
 import Control.Category
 import Control.Category.Choice
@@ -8,6 +8,7 @@ import Control.Category.Split
 import Control.Category.Codiagonal
 import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
+import Data.Foldable (any, all)
 import Data.Functor.Identity
 import Data.Functor.Coproduct
 import Data.Maybe
@@ -39,30 +40,24 @@ getPL :: PartialLens a b -> a -> Maybe b
 getPL (PLens f) a = pos <$> f a
 
 -- If the PartialLens is null, then return the given default value.
-getorPL :: PartialLens a b -> a -> b -> b
-getorPL l a b = fromMaybe b (getPL l a)
+getorPL :: PartialLens a b -> b -> a -> b
+getorPL l b = fromMaybe b . getPL l
 
 -- If the PartialLens is null, then return the given default value.
-getorAPL :: Applicative f => PartialLens a b -> a -> f b -> f b
-getorAPL l a b = case getPL l a of
-                    Just c -> pure c
-                    Nothing -> b
+getorAPL :: Applicative f => PartialLens a b -> f b -> a -> f b
+getorAPL l b = maybe b pure . getPL l
 
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isJust . getPL l
 
 anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
-anyPL l p a =
-  case getPL l a of
-    Nothing -> False
-    Just x -> p x
+anyPL l p =
+  any p . getPL l
 
 allPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
-allPL l p a =
-  case getPL l a of
-    Nothing -> True
-    Just x -> p x
+allPL l p =
+  all p . getPL l
 
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
@@ -131,9 +126,7 @@ tailLens = PLens f
   f (h:t) = Just (store (h:) t)
 
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
-getorEmptyPL l p a = case getPL l a of
-                       Nothing -> mempty
-                       Just x  -> p x
+getorEmptyPL l p = maybe mempty p . getPL l
 
 -- returns 0 in case of null
 sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
