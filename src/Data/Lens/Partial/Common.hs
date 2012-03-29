@@ -11,7 +11,7 @@ import Control.Comonad.Trans.Store
 import Data.Functor.Identity
 import Data.Functor.Coproduct
 import Data.Maybe
-import Data.Monoid hiding (Product)
+import Data.Monoid
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
@@ -134,6 +134,14 @@ getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
 getorEmptyPL l p a = case getPL l a of
                        Nothing -> mempty
                        Just x  -> p x
+
+-- returns 0 in case of null
+sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
+sumPL l p = getSum . getorEmptyPL l (Sum . p)
+
+-- returns 1 in case of null
+productPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
+productPL l p = getProduct . getorEmptyPL l (Product . p)
 
 {- Other Examples
 
