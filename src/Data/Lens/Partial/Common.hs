@@ -3,14 +3,19 @@ module Data.Lens.Partial.Common where
 import Prelude hiding ((.), id, null)
 import Control.Applicative
 import Control.Category
+import Control.Category.Choice
+import Control.Category.Split
+import Control.Category.Codiagonal
 import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
 import Data.Functor.Identity
 import Data.Functor.Coproduct
+import Data.Maybe
+import Data.Monoid
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
--- A partial lens is a coalgebra for the Coprodcut Identity (Store b) comonad.
+-- A partial lens is a coalgebra for the Coproduct Identity (Store b) comonad.
 runPLens :: PartialLens a b -> a -> (Coproduct Identity (Store b)) a
 runPLens (PLens f) a = maybe (left (Identity a)) right (f a)
 
@@ -33,6 +38,32 @@ totalLens (Lens f) = PLens (Just . f)
 getPL :: PartialLens a b -> a -> Maybe b
 getPL (PLens f) a = pos <$> f a
 
+-- If the PartialLens is null, then return the given default value.
+getorPL :: PartialLens a b -> a -> b -> b
+getorPL l a b = fromMaybe b (getPL l a)
+
+-- If the PartialLens is null, then return the given default value.
+getorAPL :: Applicative f => PartialLens a b -> a -> f b -> f b
+getorAPL l a b = case getPL l a of
+                    Just c -> pure c
+                    Nothing -> b
+
+-- If the Partial is null.
+nullPL :: PartialLens a b -> a -> Bool
+nullPL l = isJust . getPL l
+
+anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
+anyPL l p a =
+  case getPL l a of
+    Nothing -> False
+    Just x -> p x
+
+allPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
+allPL l p a =
+  case getPL l a of
+    Nothing -> True
+    Just x -> p x
+
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
 
@@ -47,9 +78,11 @@ modPL (PLens f) g a = maybe a (peeks g) (f a)
 -- * Operator API
 
 infixr 0 ^$
+(^$) :: PartialLens a b -> a -> Maybe b
 (^$) = getPL
 
-infixr 9 ^.
+infixl 9 ^.
+(^.) :: a -> PartialLens a b -> Maybe b
 (^.) = flip getPL
 
 infixr 4 ^=
@@ -97,6 +130,19 @@ tailLens = PLens f
   f [] = Nothing
   f (h:t) = Just (store (h:) t)
 
+getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
+getorEmptyPL l p a = case getPL l a of
+                       Nothing -> mempty
+                       Just x  -> p x
+
+-- returns 0 in case of null
+sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
+sumPL l p = getSum . getorEmptyPL l (Sum . p)
+
+-- returns 1 in case of null
+productPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
+productPL l p = getProduct . getorEmptyPL l (Product . p)
+
 {- Other Examples
 
 nthLens :: Int -> PartialLens [a] a
@@ -112,3 +158,19 @@ mapPLens k = maybeLens . totalLens (mapLens k)
 intMapPLens :: Int -> PartialLens (IntMap v) v
 intMapPLens k = maybeLens . totalLens (intMapLens k)
 -}
+
+instance Choice PartialLens where
+  PLens f ||| PLens g =
+    PLens $ either
+      (fmap (\x -> store (Left . flip peek x) (pos x)) . f)
+      (fmap (\y -> store (Right . flip peek y) (pos y)) . g)
+
+instance Split PartialLens where
+  PLens f *** PLens g =
+    PLens $ \(a, c) ->
+      do x <- f a
+         y <- g c
+         return $ store (\(b, d) -> (peek b x, peek d y)) (pos x, pos y)
+
+instance Codiagonal PartialLens where
+  codiagonal = id ||| id

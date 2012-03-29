@@ -30,6 +30,9 @@ module Data.Lens.Common
 import Control.Applicative
 import Control.Comonad.Trans.Store
 import Control.Category
+import Control.Category.Choice
+import Control.Category.Split
+import Control.Category.Codiagonal
 import Data.Functor.Identity
 import Data.Functor.Apply
 import Data.Semigroupoid
@@ -60,7 +63,7 @@ instance Category Lens where
 
 -- | build a lens out of a getter and setter
 lens :: (a -> b) -> (b -> a -> a) -> Lens a b
-lens get set = Lens $ \a -> store (\b -> set b a) (get a)
+lens get set = Lens $ \a -> store (`set` a) (get a)
 
 -- | build a lens out of an isomorphism
 iso :: (a -> b) -> (b -> a) -> Lens a b
@@ -75,7 +78,7 @@ infixr 0 ^$, ^$!
 (^$) = getL
 Lens f ^$! a = pos (f $! a)
 
-infixr 9 ^., ^!
+infixl 9 ^., ^!
 -- | functional getter, which acts like a field accessor
 (^.), (^!) :: a -> Lens a b -> b
 a ^. Lens f = pos (f a)
@@ -151,3 +154,19 @@ intSetLens :: Int -> Lens IntSet Bool
 intSetLens k = Lens $ \m -> store (\mv ->
     if mv then IntSet.insert k m else IntSet.delete k m
   ) (IntSet.member k m)
+
+instance Choice Lens where
+  Lens f ||| Lens g =
+    Lens $ either
+      (\a -> let x = f a in store (Left . flip peek x) (pos x))
+      (\b -> let y = g b in store (Right . flip peek y) (pos y))
+
+instance Split Lens where
+  Lens f *** Lens g =
+    Lens $ \(a, c) ->
+      let x = f a
+          y = g c
+      in store (\(b, d) -> (peek b x, peek d y)) (pos x, pos y)
+
+instance Codiagonal Lens where
+  codiagonal = id ||| id
