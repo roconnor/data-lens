@@ -49,10 +49,6 @@ getorMPL l a b =
        Just c -> return c
        Nothing -> b
 
--- If the PartialLens is null, then return the target object, otherwise run the function on its projection.
-withPL :: PartialLens a b -> (b -> a) -> a -> a
-withPL l f = flip maybe f <*> getPL l
-
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isJust . getPL l
