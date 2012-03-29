@@ -11,8 +11,7 @@ dist
 *.lkshs
 
 # Intellij IDEA
-.idea/workspace.xml
-.idea/ant.xml
+.idea
 
 # ctags
 TAGS
