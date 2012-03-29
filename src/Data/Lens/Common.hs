@@ -78,7 +78,7 @@ infixr 0 ^$, ^$!
 (^$) = getL
 Lens f ^$! a = pos (f $! a)
 
-infixr 9 ^., ^!
+infixl 9 ^., ^!
 -- | functional getter, which acts like a field accessor
 (^.), (^!) :: a -> Lens a b -> b
 a ^. Lens f = pos (f a)

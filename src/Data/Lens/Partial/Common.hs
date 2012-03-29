@@ -11,6 +11,7 @@ import Control.Comonad.Trans.Store
 import Data.Functor.Identity
 import Data.Functor.Coproduct
 import Data.Maybe
+import Data.Monoid hiding (Product)
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
@@ -80,7 +81,7 @@ infixr 0 ^$
 (^$) :: PartialLens a b -> a -> Maybe b
 (^$) = getPL
 
-infixr 9 ^.
+infixl 9 ^.
 (^.) :: a -> PartialLens a b -> Maybe b
 (^.) = flip getPL
 
@@ -128,6 +129,11 @@ tailLens = PLens f
  where
   f [] = Nothing
   f (h:t) = Just (store (h:) t)
+
+getorEmpty :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
+getorEmpty l p a = case getPL l a of
+              Nothing -> mempty
+              Just x  -> p x
 
 {- Other Examples
 
