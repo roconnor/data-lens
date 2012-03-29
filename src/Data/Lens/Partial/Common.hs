@@ -54,8 +54,8 @@ withPL :: PartialLens a b -> (b -> a) -> a -> a
 withPL l f = flip maybe f <*> getPL l
 
 -- If the Partial is null.
-isPL :: PartialLens a b -> a -> Bool
-isPL l = isJust . getPL l
+nullPL :: PartialLens a b -> a -> Bool
+nullPL l = isJust . getPL l
 
 anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
 anyPL l p a =
