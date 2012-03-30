@@ -1,6 +1,6 @@
 module Control.Category.Choice where
 
-import Control.Arrow
+import Control.Arrow hiding ((|||))
 
 infixr 2 |||
 class Choice c where

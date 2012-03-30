@@ -1,6 +1,6 @@
 module Control.Category.Split where
 
-import Control.Arrow
+import Control.Arrow hiding ((***))
 import Control.Applicative
 
 infixr 3 ***
