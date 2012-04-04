@@ -1,17 +1,18 @@
-name:          data-lens
-category:      Control, Comonads
-version:       4.0.0
-license:       BSD3
-cabal-version: >= 1.6
-license-file:  LICENSE
-author:        Russell O'Connor & Edward A. Kmett
-maintainer:    Russell O'Connor <roconnor@theorem.ca>
-stability:     provisional
-homepage:      http://github.com/roconnor/data-lens/
-copyright:     Copyright (C) 2008-2012 Edward A. Kmett & Russell O'Connor
-synopsis:      Haskell 98 Lenses
-description:   Haskell 98 Lenses
-build-type:    Simple
+name:               data-lens
+category:           Control, Comonads
+version:            2.9.0
+license:            BSD3
+cabal-version:      >= 1.6
+license-file:       LICENSE
+author:             Russell O'Connor, Edward A. Kmett & Tony Morris
+maintainer:         Russell O'Connor <roconnor@theorem.ca>
+stability:          provisional
+homepage:           http://github.com/roconnor/data-lens/
+copyright:          Copyright (C) 2008-2012 Edward A. Kmett, Russell O'Connor & Tony Morris
+synopsis:           Haskell 98 Lenses
+description:        Haskell 98 Lenses
+build-type:         Simple
+extra-source-files: CHANGELOG
 
 source-repository head
   type: git
@@ -44,9 +45,13 @@ library
     Data.Lens.Strict
     Data.Lens.Partial.Common
     Data.Lens.Partial.Lazy
-    Data.Lens.Partial.Strict
-    Data.Lens.Multi.Common
-    Data.Lens.Multi.Lazy
-    Data.Lens.Multi.Strict
+    -- Data.Lens.Partial.Strict
+    Control.Category.Choice
+    Control.Category.Codiagonal
+    Control.Category.Split
 
   ghc-options:      -Wall 
+
+  hs-source-dirs:
+                    src
+

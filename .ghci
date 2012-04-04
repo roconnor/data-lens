@@ -1,0 +1,4 @@
+:set -isrc
+:l Control.Category.Product Data.Lens.Common Data.Lens.Lazy Data.Lens.Strict Data.Lens.Partial.Common Data.Lens.Partial.Lazy
+:set -Wall
+
