@@ -4,7 +4,7 @@ import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
 import Control.Category
 import Control.Category.Choice
-import Control.Category.Split
+import Control.Category.Product
 import Control.Category.Codiagonal
 import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
@@ -12,7 +12,8 @@ import Data.Foldable (any, all)
 import Data.Functor.Identity
 import Data.Functor.Coproduct
 import Data.Maybe
-import Data.Monoid
+import Data.Monoid(Monoid)
+import qualified Data.Monoid as M
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
@@ -126,15 +127,15 @@ tailLens = PLens f
   f (h:t) = Just (store (h:) t)
 
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
-getorEmptyPL l p = maybe mempty p . getPL l
+getorEmptyPL l p = maybe M.mempty p . getPL l
 
 -- returns 0 in case of null
 sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
-sumPL l p = getSum . getorEmptyPL l (Sum . p)
+sumPL l p = M.getSum . getorEmptyPL l (M.Sum . p)
 
 -- returns 1 in case of null
 productPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
-productPL l p = getProduct . getorEmptyPL l (Product . p)
+productPL l p = M.getProduct . getorEmptyPL l (M.Product . p)
 
 {- Other Examples
 
@@ -158,7 +159,7 @@ instance Choice PartialLens where
       (fmap (\x -> store (Left . flip peek x) (pos x)) . f)
       (fmap (\y -> store (Right . flip peek y) (pos y)) . g)
 
-instance Split PartialLens where
+instance Product PartialLens where
   PLens f *** PLens g =
     PLens $ \(a, c) ->
       do x <- f a

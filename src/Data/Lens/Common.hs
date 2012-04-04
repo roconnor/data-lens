@@ -31,7 +31,7 @@ import Control.Applicative
 import Control.Comonad.Trans.Store
 import Control.Category
 import Control.Category.Choice
-import Control.Category.Split
+import Control.Category.Product
 import Control.Category.Codiagonal
 import Data.Functor.Identity
 import Data.Functor.Apply
@@ -161,7 +161,7 @@ instance Choice Lens where
       (\a -> let x = f a in store (Left . flip peek x) (pos x))
       (\b -> let y = g b in store (Right . flip peek y) (pos y))
 
-instance Split Lens where
+instance Product Lens where
   Lens f *** Lens g =
     Lens $ \(a, c) ->
       let x = f a
