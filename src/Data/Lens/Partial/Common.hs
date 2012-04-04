@@ -1,4 +1,40 @@
-module Data.Lens.Partial.Common where
+module Data.Lens.Partial.Common
+  ( PartialLens(..)
+  -- * Partial Lens construction
+  , plens -- build a lens from a getter and setter
+  , null
+  , totalLens -- build a lens from a homomorphism
+  -- * Functional API
+  , runPLens
+  , getPL
+  , getorPL
+  , getorAPL
+  , nullPL
+  , anyPL
+  , allPL
+  , trySetPL
+  , setPL
+  , modPL
+  -- * Operator API
+  , (^$)
+  , (^.)
+  , (^=)
+  , (^%=)
+  -- * Pseudo-imperatives
+  , (^+=)
+  , (^-=)
+  , (^*=)
+  , (^/=)
+  -- * Stock lenses
+  , justLens
+  , leftLens
+  , rightLens
+  , headLens
+  , tailLens
+  , getorEmptyPL
+  , sumPL
+  , productPL
+  ) where
 
 import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
@@ -16,6 +52,11 @@ import Data.Monoid(Monoid)
 import qualified Data.Monoid as M
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
+
+plens :: (a -> Maybe b) -> (a -> Maybe (b -> a)) -> PartialLens a b
+plens get set = PLens $ \a -> do g <- get a
+                                 s <- set a
+                                 return (store s g)
 
 -- A partial lens is a coalgebra for the Coproduct Identity (Store b) comonad.
 runPLens :: PartialLens a b -> a -> (Coproduct Identity (Store b)) a
@@ -103,8 +144,8 @@ l ^/= r = l ^%= (/ r)
 
 -- * Stock partial lenses
 
-maybeLens :: PartialLens (Maybe a) a
-maybeLens = PLens $ \ma -> do
+justLens :: PartialLens (Maybe a) a
+justLens = PLens $ \ma -> do
   a <- ma
   return (store Just a) 
 
