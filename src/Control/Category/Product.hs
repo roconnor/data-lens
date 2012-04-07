@@ -4,6 +4,7 @@ import Prelude hiding (id)
 import Control.Category
 
 infixr 3 ***
+infixr 3 &&&
 
 class Category c => Tensor c where
   -- requires (fl *** fr) . (gl *** gr) === (fl . gl) *** (fr . gr)
