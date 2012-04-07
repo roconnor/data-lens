@@ -101,6 +101,13 @@ infixr 4 ^%=
 (^%=) :: PartialLens a b -> (b -> b) -> a -> a
 (^%=) = modPL
 
+infixr 4 ^%%=
+-- | applicative modify
+(^%%=) :: Applicative f => PartialLens a b -> (b -> f b) -> a -> f a
+PLens f ^%%= g = \a -> case f a of
+  Nothing                      -> pure a
+  Just (StoreT (Identity h) b) -> h <$> g b
+
 -- * Pseudo-imperatives
 
 infixr 4 ^+=, ^-=, ^*=
