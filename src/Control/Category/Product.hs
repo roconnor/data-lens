@@ -21,6 +21,7 @@ instance Tensor (->) where
 class Tensor c => Product c where
   -- requires (f &&& g) . h === (f . h) &&& (g . h)
   -- and (fst &&& snd) === id
+  -- and terminal = f 
   (&&&) :: c x y -> c x z -> c x (y, z)
   terminal :: c x ()
 
