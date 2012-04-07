@@ -13,7 +13,6 @@ class Category c => Tensor c where
   first = (*** id)
   second :: c y z -> c (w,y) (w,z)
   second = (id ***)
-  
 
 instance Tensor (->) where
   (***) f g (w, y) = (f w, g y)
