@@ -14,7 +14,7 @@ module Data.Lens.Strict
   , focus          -- modify -- :: Monad m => Lens a b -> StateT m b c -> StateT m a c
   ) where
 
-import Control.Arrow
+import Control.Category.Product
 import Control.Comonad.Trans.Store
 import Control.Monad.Trans.State.Strict
 import Control.Monad (liftM)

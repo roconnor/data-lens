@@ -3,9 +3,7 @@ module Data.Lens.Partial.Common where
 import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
 import Control.Category
-import Control.Category.Choice
-import Control.Category.Split
-import Control.Category.Codiagonal
+import Control.Category.Product
 import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
 import Data.Foldable (any, all)
@@ -50,6 +48,17 @@ getorAPL l b = maybe b pure . getPL l
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isJust . getPL l
+
+getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
+getorEmptyPL l p = maybe mempty p . getPL l
+
+-- returns 0 in case of null
+sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
+sumPL l p = getSum . getorEmptyPL l (Sum . p)
+
+-- returns 1 in case of null
+productPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
+productPL l p = getProduct . getorEmptyPL l (Product . p)
 
 anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
 anyPL l p =
@@ -102,8 +111,8 @@ l ^/= r = l ^%= (/ r)
 
 -- * Stock partial lenses
 
-maybeLens :: PartialLens (Maybe a) a
-maybeLens = PLens $ \ma -> do
+justLens :: PartialLens (Maybe a) a
+justLens = PLens $ \ma -> do
   a <- ma
   return (store Just a) 
 
@@ -125,17 +134,6 @@ tailLens = PLens f
   f [] = Nothing
   f (h:t) = Just (store (h:) t)
 
-getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
-getorEmptyPL l p = maybe mempty p . getPL l
-
--- returns 0 in case of null
-sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
-sumPL l p = getSum . getorEmptyPL l (Sum . p)
-
--- returns 1 in case of null
-productPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
-productPL l p = getProduct . getorEmptyPL l (Product . p)
-
 {- Other Examples
 
 nthLens :: Int -> PartialLens [a] a
@@ -145,25 +143,16 @@ nthLens n | n < 0  = null
 
 -- setPL does not insert into a Map! it only modifies a value if the key already exists in the map
 mapPLens :: Ord k => k -> PartialLens (Map.Map k v) v
-mapPLens k = maybeLens . totalLens (mapLens k)
+mapPLens k = justLens . totalLens (mapLens k)
 
 -- setPL does not insert into a IntMap! it only modifies a value if the key already exists in the map
 intMapPLens :: Int -> PartialLens (IntMap v) v
-intMapPLens k = maybeLens . totalLens (intMapLens k)
+intMapPLens k = justLens . totalLens (intMapLens k)
 -}
 
-instance Choice PartialLens where
-  PLens f ||| PLens g =
-    PLens $ either
-      (fmap (\x -> store (Left . flip peek x) (pos x)) . f)
-      (fmap (\y -> store (Right . flip peek y) (pos y)) . g)
-
-instance Split PartialLens where
+instance Tensor PartialLens where
   PLens f *** PLens g =
     PLens $ \(a, c) ->
       do x <- f a
          y <- g c
          return $ store (\(b, d) -> (peek b x, peek d y)) (pos x, pos y)
-
-instance Codiagonal PartialLens where
-  codiagonal = id ||| id

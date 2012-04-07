@@ -46,9 +46,7 @@ library
     Data.Lens.Partial.Common
     Data.Lens.Partial.Lazy
     -- Data.Lens.Partial.Strict
-    Control.Category.Choice
-    Control.Category.Codiagonal
-    Control.Category.Split
+    Control.Category.Product
 
   ghc-options:      -Wall 
 

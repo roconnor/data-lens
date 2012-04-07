@@ -30,9 +30,7 @@ module Data.Lens.Common
 import Control.Applicative
 import Control.Comonad.Trans.Store
 import Control.Category
-import Control.Category.Choice
-import Control.Category.Split
-import Control.Category.Codiagonal
+import Control.Category.Product
 import Data.Functor.Identity
 import Data.Functor.Apply
 import Data.Semigroupoid
@@ -155,18 +153,9 @@ intSetLens k = Lens $ \m -> store (\mv ->
     if mv then IntSet.insert k m else IntSet.delete k m
   ) (IntSet.member k m)
 
-instance Choice Lens where
-  Lens f ||| Lens g =
-    Lens $ either
-      (\a -> let x = f a in store (Left . flip peek x) (pos x))
-      (\b -> let y = g b in store (Right . flip peek y) (pos y))
-
-instance Split Lens where
+instance Tensor Lens where
   Lens f *** Lens g =
     Lens $ \(a, c) ->
       let x = f a
           y = g c
       in store (\(b, d) -> (peek b x, peek d y)) (pos x, pos y)
-
-instance Codiagonal Lens where
-  codiagonal = id ||| id
