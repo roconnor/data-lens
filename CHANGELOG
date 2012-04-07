@@ -2,4 +2,4 @@
 ==========================
 * Introduced partial/nullable lenses (Data.Lens.Partial).
 * Altered the associativity of (^.) and (^!) from right to left.
-* Introduced Tensor and Product type-classes to Control.Category -- instanced by Lens and PartialLens.
+* Introduced Tensor type-class to Control.Category -- instanced by Lens and PartialLens.
