@@ -7,6 +7,7 @@ module Data.Lens.Common
   , getL
   , setL
   , modL
+  , mergeL
   -- * Operator API
   , (^$),  (^$!)   -- getter -- :: Lens a b -> a -> b
   , (^.),  (^!)    -- getter -- :: a -> Lens a b -> b
@@ -95,6 +96,10 @@ Lens f ^!= b = \a -> case f a of
 -- | Gets the modifier function from a lens.
 modL :: Lens a b -> (b -> b) -> a -> a
 modL (Lens f) g = peeks g . f
+
+mergeL :: Lens a c -> Lens b c -> Lens (Either a b) c
+Lens f `mergeL` Lens g = 
+  Lens $ either (\a -> Left <$> f a) (\b -> Right <$> g b)
 
 infixr 4 ^%=, ^!%=
 -- | functional modify

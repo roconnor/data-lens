@@ -45,6 +45,10 @@ getorPL l b = fromMaybe b . getPL l
 getorAPL :: Applicative f => PartialLens a b -> f b -> a -> f b
 getorAPL l b = maybe b pure . getPL l
 
+mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
+(PLens f) `mergePL` (PLens g) =
+  PLens $ either (\a -> (fmap Left) <$> f a) (\b -> (fmap Right) <$> g b)
+
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isJust . getPL l
