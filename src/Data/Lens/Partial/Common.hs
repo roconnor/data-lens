@@ -51,7 +51,7 @@ mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
 
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
-nullPL l = isJust . getPL l
+nullPL l = isNothing . getPL l
 
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
 getorEmptyPL l p = maybe mempty p . getPL l
