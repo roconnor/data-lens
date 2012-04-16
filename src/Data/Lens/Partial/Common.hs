@@ -56,6 +56,9 @@ nullPL l = isNothing . getPL l
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
 getorEmptyPL l p = maybe mempty p . getPL l
 
+emptyPL :: Monoid b => PartialLens a b -> a -> b
+emptyPL = flip getorEmptyPL id
+
 -- returns 0 in case of null
 sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
 sumPL l p = getSum . getorEmptyPL l (Sum . p)
