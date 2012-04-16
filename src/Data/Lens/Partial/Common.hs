@@ -49,6 +49,12 @@ mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
 (PLens f) `mergePL` (PLens g) =
   PLens $ either (\a -> (fmap Left) <$> f a) (\b -> (fmap Right) <$> g b)
 
+unzipPL :: PartialLens a (b, c) -> (PartialLens a b, PartialLens a c)
+unzipPL (PLens f) = (
+                      PLens $ fmap (\(StoreT (Identity x) (p, q)) -> store (\b -> x (b, q)) p) . f
+                    , PLens $ fmap (\(StoreT (Identity x) (p, q)) -> store (\c -> x (p, c)) q) . f
+                    )
+
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isNothing . getPL l
