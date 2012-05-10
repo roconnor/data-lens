@@ -59,6 +59,10 @@ unzipPL (PLens f) = (
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isNothing . getPL l
 
+-- If the Partial is not null.
+notNullPL :: PartialLens a b -> a -> Bool
+notNullPL l = isJust . getPL l
+
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
 getorEmptyPL l p = maybe mempty p . getPL l
 
