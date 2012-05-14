@@ -7,6 +7,8 @@ module Data.Lens.Common
   , getL
   , setL
   , modL
+  , mergeL
+  , unzipL
   -- * Operator API
   , (^$),  (^$!)   -- getter -- :: Lens a b -> a -> b
   , (^.),  (^!)    -- getter -- :: a -> Lens a b -> b
@@ -30,6 +32,7 @@ module Data.Lens.Common
 import Control.Applicative
 import Control.Comonad.Trans.Store
 import Control.Category
+import Control.Category.Product
 import Data.Functor.Identity
 import Data.Functor.Apply
 import Data.Semigroupoid
@@ -60,7 +63,7 @@ instance Category Lens where
 
 -- | build a lens out of a getter and setter
 lens :: (a -> b) -> (b -> a -> a) -> Lens a b
-lens get set = Lens $ \a -> store (\b -> set b a) (get a)
+lens get set = Lens $ \a -> store (`set` a) (get a)
 
 -- | build a lens out of an isomorphism
 iso :: (a -> b) -> (b -> a) -> Lens a b
@@ -75,7 +78,7 @@ infixr 0 ^$, ^$!
 (^$) = getL
 Lens f ^$! a = pos (f $! a)
 
-infixr 9 ^., ^!
+infixl 9 ^., ^!
 -- | functional getter, which acts like a field accessor
 (^.), (^!) :: a -> Lens a b -> b
 a ^. Lens f = pos (f a)
@@ -94,6 +97,16 @@ Lens f ^!= b = \a -> case f a of
 -- | Gets the modifier function from a lens.
 modL :: Lens a b -> (b -> b) -> a -> a
 modL (Lens f) g = peeks g . f
+
+mergeL :: Lens a c -> Lens b c -> Lens (Either a b) c
+Lens f `mergeL` Lens g = 
+  Lens $ either (\a -> Left <$> f a) (\b -> Right <$> g b)
+
+unzipL :: Lens a (b, c) -> (Lens a b, Lens a c)
+unzipL (Lens f) = (
+                    Lens $ \a -> let StoreT (Identity x) (p, q) = f a in store (\b -> x (b, q)) p
+                  , Lens $ \a -> let StoreT (Identity x) (p, q) = f a in store (\c -> x (p, c)) q
+                  )
 
 infixr 4 ^%=, ^!%=
 -- | functional modify
@@ -151,3 +164,10 @@ intSetLens :: Int -> Lens IntSet Bool
 intSetLens k = Lens $ \m -> store (\mv ->
     if mv then IntSet.insert k m else IntSet.delete k m
   ) (IntSet.member k m)
+
+instance Tensor Lens where
+  Lens f *** Lens g =
+    Lens $ \(a, c) ->
+      let x = f a
+          y = g c
+      in store (\(b, d) -> (peek b x, peek d y)) (pos x, pos y)

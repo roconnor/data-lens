@@ -1,0 +1,10 @@
+2.10 (Changes from 2.9.0)
+=========================
+* Removed unused depencencies
+* Fixed bug in the definition of nullPL
+
+2.9.0 (Changes from 2.0.3)
+==========================
+* Introduced partial/nullable lenses (Data.Lens.Partial).
+* Altered the associativity of (^.) and (^!) from right to left.
+* Introduced Tensor type-class to Control.Category -- instanced by Lens and PartialLens.

@@ -1,2 +1,18 @@
-_darcs
+*~
+*#*
+
+# CABAL
 dist
+
+# Haskell Program Coverage
+.hpc
+
+# Leksah
+*.lkshs
+
+# Intellij IDEA
+.idea
+
+# ctags
+TAGS
+

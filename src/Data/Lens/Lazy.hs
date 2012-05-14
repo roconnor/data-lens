@@ -1,4 +1,4 @@
-module Data.Lens.Strict
+module Data.Lens.Lazy
   ( module Data.Lens.Common
   -- * State API
   , access         -- getter -- :: Monad m => Lens a b -> StateT a m b
@@ -14,8 +14,9 @@ module Data.Lens.Strict
   , focus          -- modify -- :: Monad m => Lens a b -> StateT m b c -> StateT m a c
   ) where
 
+import Control.Category.Product
 import Control.Comonad.Trans.Store
-import Control.Monad.Trans.State.Strict
+import Control.Monad.Trans.State
 import Control.Monad (liftM)
 import Data.Functor.Identity
 import Data.Lens.Common
@@ -29,7 +30,7 @@ access (Lens f) = gets (pos . f)
 
 focus :: Monad m => Lens a b -> StateT b m c -> StateT a m c
 focus (Lens f) (StateT g) = StateT $ \a -> case f a of
-  StoreT (Identity h) b -> liftM (\(c, b') -> (c, h b')) (g b)
+  StoreT (Identity h) b -> liftM (second h) (g b)
 
 infixr 4 ~=, !=
 
