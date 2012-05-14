@@ -47,7 +47,7 @@ getorAPL l b = maybe b pure . getPL l
 
 mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
 (PLens f) `mergePL` (PLens g) =
-  PLens $ either (\a -> (fmap Left) <$> f a) (\b -> (fmap Right) <$> g b)
+  PLens $ either (\a -> fmap Left <$> f a) (\b -> fmap Right <$> g b)
 
 unzipPL :: PartialLens a (b, c) -> (PartialLens a b, PartialLens a c)
 unzipPL (PLens f) = (
@@ -95,6 +95,23 @@ setPL (PLens f) b a = maybe a (peek b) (f a)
 -- If the PartialLens is null, then setPL returns the identity function.
 modPL :: PartialLens a b -> (b -> b) -> a -> a
 modPL (PLens f) g a = maybe a (peeks g) (f a)
+
+lookupByL :: (k -> k -> Bool) -> k -> PartialLens [(k, v)] v
+lookupByL p z = let lookupr t@(_, (k, _), _) | p k z = Just t
+                    lookupr (_, _,       [])         = Nothing
+                    lookupr (l, x, r:rs)             = lookupr $! (x:l, r, rs)
+              in PLens $ \q -> case q of []    -> Nothing
+                                         (h:t) -> fmap (\(l, (k, v), r) -> store (\v' -> reverse l ++ (k, v') : r) v) (lookupr ([], h, t))
+
+lookupL :: Eq k => k -> PartialLens [(k, v)] v
+lookupL = lookupByL (==)
+
+findL :: (a -> Bool) -> PartialLens [a] a
+findL p = let findr t@(_, x, _) | p x = Just t
+              findr (_, _, [])        = Nothing
+              findr (l, x, r:rs)      = findr $! (x:l, r, rs)
+          in PLens $ \q -> case q of []    -> Nothing
+                                     (h:t) -> fmap (\(l, x, r) -> store (\x' -> reverse l ++ x' : r) x) (findr ([], h, t))
 
 -- * Operator API
 
