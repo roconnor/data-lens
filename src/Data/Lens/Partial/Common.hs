@@ -4,7 +4,7 @@ import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
 import Control.Category
 import Control.Category.Product
-import Data.Lens.Common (Lens(..))
+import Data.Lens.Common (Lens(..), fstLens, sndLens)
 import Control.Comonad.Trans.Store
 import Data.Foldable (any, all)
 import Data.Functor.Identity
@@ -47,14 +47,24 @@ getorAPL l b = maybe b pure . getPL l
 
 mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
 (PLens f) `mergePL` (PLens g) =
-  PLens $ either (\a -> (fmap Left) <$> f a) (\b -> (fmap Right) <$> g b)
+  PLens $ either (\a -> fmap Left <$> f a) (\b -> fmap Right <$> g b)
+
+unzipPL :: PartialLens a (b, c) -> (PartialLens a b, PartialLens a c)
+unzipPL = (,) <$> (totalLens fstLens .) <*> (totalLens sndLens .)
 
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
 nullPL l = isNothing . getPL l
 
+-- If the Partial is not null.
+notNullPL :: PartialLens a b -> a -> Bool
+notNullPL l = isJust . getPL l
+
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
 getorEmptyPL l p = maybe mempty p . getPL l
+
+emptyPL :: Monoid b => PartialLens a b -> a -> b
+emptyPL = flip getorEmptyPL id
 
 -- returns 0 in case of null
 sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
@@ -82,6 +92,16 @@ setPL (PLens f) b a = maybe a (peek b) (f a)
 -- If the PartialLens is null, then setPL returns the identity function.
 modPL :: PartialLens a b -> (b -> b) -> a -> a
 modPL (PLens f) g a = maybe a (peeks g) (f a)
+
+lookupByL :: (k -> Bool) -> PartialLens [(k, v)] v
+lookupByL p = let lookupr t@(_, (k, _), _) | p k = Just t
+                  lookupr (_, _,       [])       = Nothing
+                  lookupr (l, x, r:rs)           = lookupr $! (x:l, r, rs)
+              in PLens $ \q -> case q of []    -> Nothing
+                                         (h:t) -> fmap (\(l, (k, v), r) -> store (\v' -> reverse l ++ (k, v') : r) v) (lookupr ([], h, t))
+
+lookupL :: Eq k => k -> PartialLens [(k, v)] v
+lookupL = lookupByL . (==)
 
 -- * Operator API
 
