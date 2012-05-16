@@ -103,10 +103,7 @@ Lens f `mergeL` Lens g =
   Lens $ either (\a -> Left <$> f a) (\b -> Right <$> g b)
 
 unzipL :: Lens a (b, c) -> (Lens a b, Lens a c)
-unzipL (Lens f) = (
-                    Lens $ \a -> let StoreT (Identity x) (p, q) = f a in store (\b -> x (b, q)) p
-                  , Lens $ \a -> let StoreT (Identity x) (p, q) = f a in store (\c -> x (p, c)) q
-                  )
+unzipL = (,) <$> (fstLens .) <*> (sndLens .)
 
 infixr 4 ^%=, ^!%=
 -- | functional modify

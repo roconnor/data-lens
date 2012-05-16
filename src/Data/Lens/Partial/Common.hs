@@ -4,7 +4,7 @@ import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
 import Control.Category
 import Control.Category.Product
-import Data.Lens.Common (Lens(..))
+import Data.Lens.Common (Lens(..), fstLens, sndLens)
 import Control.Comonad.Trans.Store
 import Data.Foldable (any, all)
 import Data.Functor.Identity
@@ -50,10 +50,7 @@ mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
   PLens $ either (\a -> fmap Left <$> f a) (\b -> fmap Right <$> g b)
 
 unzipPL :: PartialLens a (b, c) -> (PartialLens a b, PartialLens a c)
-unzipPL (PLens f) = (
-                      PLens $ fmap (\(StoreT (Identity x) (p, q)) -> store (\b -> x (b, q)) p) . f
-                    , PLens $ fmap (\(StoreT (Identity x) (p, q)) -> store (\c -> x (p, c)) q) . f
-                    )
+unzipPL = (,) <$> (totalLens fstLens .) <*> (totalLens sndLens .)
 
 -- If the Partial is null.
 nullPL :: PartialLens a b -> a -> Bool
