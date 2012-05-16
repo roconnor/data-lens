@@ -93,15 +93,15 @@ setPL (PLens f) b a = maybe a (peek b) (f a)
 modPL :: PartialLens a b -> (b -> b) -> a -> a
 modPL (PLens f) g a = maybe a (peeks g) (f a)
 
-lookupByL :: (k -> k -> Bool) -> k -> PartialLens [(k, v)] v
-lookupByL p z = let lookupr t@(_, (k, _), _) | p k z = Just t
-                    lookupr (_, _,       [])         = Nothing
-                    lookupr (l, x, r:rs)             = lookupr $! (x:l, r, rs)
+lookupByL :: (k -> Bool) -> PartialLens [(k, v)] v
+lookupByL p = let lookupr t@(_, (k, _), _) | p k = Just t
+                  lookupr (_, _,       [])       = Nothing
+                  lookupr (l, x, r:rs)           = lookupr $! (x:l, r, rs)
               in PLens $ \q -> case q of []    -> Nothing
                                          (h:t) -> fmap (\(l, (k, v), r) -> store (\v' -> reverse l ++ (k, v') : r) v) (lookupr ([], h, t))
 
 lookupL :: Eq k => k -> PartialLens [(k, v)] v
-lookupL = lookupByL (==)
+lookupL = lookupByL . (==)
 
 findL :: (a -> Bool) -> PartialLens [a] a
 findL p = let findr t@(_, x, _) | p x = Just t
