@@ -103,13 +103,6 @@ lookupByL p = let lookupr t@(_, (k, _), _) | p k = Just t
 lookupL :: Eq k => k -> PartialLens [(k, v)] v
 lookupL = lookupByL . (==)
 
-findL :: (a -> Bool) -> PartialLens [a] a
-findL p = let findr t@(_, x, _) | p x = Just t
-              findr (_, _, [])        = Nothing
-              findr (l, x, r:rs)      = findr $! (x:l, r, rs)
-          in PLens $ \q -> case q of []    -> Nothing
-                                     (h:t) -> fmap (\(l, x, r) -> store (\x' -> reverse l ++ x' : r) x) (findr ([], h, t))
-
 -- * Operator API
 
 infixr 0 ^$
