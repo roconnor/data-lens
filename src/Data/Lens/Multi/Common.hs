@@ -4,11 +4,14 @@ import Prelude hiding ((.), id, null)
 import Control.Applicative
 import Control.Category
 import Data.Lens.Common (Lens(..))
-import Data.Lens.Partial.Common (PartialLens(..), runPLens)
+import Data.Lens.Partial.Common (PartialLens, pLens, runPLens)
+import Control.Comonad
 import Control.Comonad.Trans.Store
 import Control.Comonad.StaredStore
 import Data.Functor.Identity
 import Data.Functor.Coproduct
+import Data.Traversable
+import Control.Arrow ((***))
 
 newtype MultiLens a b = MLens {runMLens :: a -> StaredStore b a}
 
@@ -24,6 +27,10 @@ totalLens (Lens f) = MLens $ fromStore . f
 partialLens :: PartialLens a b -> MultiLens a b
 partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 
+backPL :: MultiLens a b -> PartialLens a b
+backPL (MLens f) = pLens $
+  coproduct left (right . uncurry store . (extract *** id) . runStoreT) . runStaredStore . f
+
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
 
@@ -35,12 +42,10 @@ infixr 4 ^%%=
 -- (id ^%%= h) = h
 -- (f . g) ^%%= h) = (g ^%%= (f ^%%= h))
 (^%%=) :: Applicative f => MultiLens a b -> (b -> f b) -> a -> f a
-MLens f ^%%= g = go g . f 
-  where
-    {- this explicit passing of g is here to allow polymorphic recursion while remaining haskell 98 -} 
-    go :: Applicative f => (b -> f b) -> (StaredStore b d) -> f d
-    go k (StaredStore s) = coproduct (pure . runIdentity) (r k) s
-    r :: Applicative f => (b -> f b) -> (StoreT b (StaredStore b) d) -> f d
-    r k st = go k h <*> k v
-      where 
-        (h, v) = runStoreT st
+MLens f ^%%= g = eekss g . f 
+
+traversableLens :: (Traversable f) => MultiLens (f a) a
+traversableLens = MLens $ traverse (runMLens id)
+
+listLens :: MultiLens [a] a
+listLens = traversableLens
