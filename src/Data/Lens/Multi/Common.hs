@@ -2,6 +2,7 @@ module Data.Lens.Multi.Common where
 
 import Prelude hiding ((.), id, null)
 import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Category
 import Data.Lens.Common (Lens(..))
 import Data.Lens.Partial.Common (PartialLens, pLens, runPLens)
@@ -30,6 +31,12 @@ partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 backPL :: MultiLens a b -> PartialLens a b
 backPL (MLens f) = pLens $
   coproduct left (right . uncurry store . (extract *** id) . runStoreT) . runStaredStore . f
+
+reverseML :: MultiLens a b -> MultiLens a b
+reverseML l = MLens (forwards . (l ^%%= (Backwards . runMLens id)))
+
+frontPL :: MultiLens a b -> PartialLens a b
+frontPL = backPL . reverseML
 
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
