@@ -4,7 +4,7 @@ import Prelude hiding ((.), id, null)
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Category
-import Data.Lens.Common (Lens(..))
+import Data.Lens.Common (Lens(..), sndLens)
 import Data.Lens.Partial.Common (PartialLens, pLens, runPLens)
 import Control.Comonad
 import Control.Comonad.Trans.Store
@@ -28,16 +28,6 @@ totalLens (Lens f) = MLens $ fromStore . f
 partialLens :: PartialLens a b -> MultiLens a b
 partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 
-backPL :: MultiLens a b -> PartialLens a b
-backPL (MLens f) = pLens $
-  coproduct left (right . uncurry store . (extract *** id) . runStoreT) . runStaredStore . f
-
-reverseML :: MultiLens a b -> MultiLens a b
-reverseML l = MLens (forwards . (l ^%%= (Backwards . runMLens id)))
-
-frontPL :: MultiLens a b -> PartialLens a b
-frontPL = backPL . reverseML
-
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
 
@@ -51,8 +41,30 @@ infixr 4 ^%%=
 (^%%=) :: Applicative f => MultiLens a b -> (b -> f b) -> a -> f a
 MLens f ^%%= g = eekss g . f 
 
+backPL :: MultiLens a b -> PartialLens a b
+backPL (MLens f) = pLens $
+  coproduct left (right . uncurry store . (extract *** id) . runStoreT) . runStaredStore . f
+
+reverseML :: MultiLens a b -> MultiLens a b
+reverseML l = MLens (forwards . (l ^%%= (Backwards . runMLens id)))
+
+frontPL :: MultiLens a b -> PartialLens a b
+frontPL = backPL . reverseML
+
+-- Stock Multilenses
+
 traversableLens :: (Traversable f) => MultiLens (f a) a
 traversableLens = MLens $ traverse (runMLens id)
 
 listLens :: MultiLens [a] a
 listLens = traversableLens
+
+lookupByL :: (k -> Bool) -> MultiLens [(k,v)] v
+lookupByL p = partialLens keyPL . listLens
+  where
+    keyPL = pLens f
+    f (k,v) | p k = right (runLens sndLens (k,v))
+            | otherwise = left (Identity (k,v))
+
+lookupL :: (Eq k) => k -> MultiLens [(k,v)] v
+lookupL k = lookupByL (k==)
