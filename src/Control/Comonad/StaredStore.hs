@@ -51,6 +51,7 @@ seekss f = coproduct (pure . runIdentity) h . runStaredStore
 peekss :: (b -> b) -> StaredStore b a -> a
 peekss f = extract . seekss f
 
+-- eeks :: Functor f => (b -> f b) -> Store b a -> f a
 eekss :: Applicative f => (b -> f b) -> (StaredStore b a) -> f a
 eekss f (StaredStore s) = coproduct (pure . runIdentity) h s
   where
