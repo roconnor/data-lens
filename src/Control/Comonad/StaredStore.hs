@@ -52,9 +52,8 @@ peekss :: (b -> b) -> StaredStore b a -> a
 peekss f = extract . seekss f
 
 eekss :: Applicative f => (b -> f b) -> (StaredStore b a) -> f a
-eekss f (StaredStore s) = coproduct (pure . runIdentity) (h f) s
+eekss f (StaredStore s) = coproduct (pure . runIdentity) h s
   where
-    h :: Applicative f => (b -> f b) -> (StoreT b (StaredStore b) d) -> f d
-    h f st = eekss f g <*> f v
+    h st = eekss f g <*> f v
       where 
         (g, v) = runStoreT st
