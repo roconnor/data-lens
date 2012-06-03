@@ -41,15 +41,15 @@ infixr 4 ^%%=
 (^%%=) :: Applicative f => MultiLens a b -> (b -> f b) -> a -> f a
 MLens f ^%%= g = eekss g . f 
 
-backPL :: MultiLens a b -> PartialLens a b
-backPL (MLens f) = pLens $
+frontPL :: MultiLens a b -> PartialLens a b
+frontPL (MLens f) = pLens $
   coproduct left (right . uncurry store . (extract *** id) . runStoreT) . runStaredStore . f
 
 reverseML :: MultiLens a b -> MultiLens a b
 reverseML l = MLens (forwards . (l ^%%= (Backwards . runMLens id)))
 
-frontPL :: MultiLens a b -> PartialLens a b
-frontPL = backPL . reverseML
+backPL :: MultiLens a b -> PartialLens a b
+backPL = frontPL . reverseML
 
 -- Stock Multilenses
 

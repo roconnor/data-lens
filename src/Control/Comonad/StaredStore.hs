@@ -5,6 +5,7 @@ import Control.Comonad
 import Control.Comonad.Trans.Store
 import Data.Functor.Coproduct
 import Data.Functor.Identity
+import Data.Functor.Constant
 
 newtype StaredStore s a = StaredStore {runStaredStore :: Coproduct Identity (StoreT s (StaredStore s)) a}
 
@@ -20,12 +21,12 @@ instance Comonad (StaredStore s) where
 
 instance Applicative (StaredStore s) where
   pure = StaredStore . left . pure
-  f <*> (StaredStore x) = coproduct l r x
+  (StaredStore f) <*> x = coproduct l r f
    where
-    l (Identity y) = fmap ($ y) f
-    r y = StaredStore (right (StoreT ((.) <$> f <*> v) s))
+    l (Identity g) = fmap g x
+    r g = StaredStore (right (StoreT (flip <$> h <*> x) s))
       where
-        (v, s) = runStoreT y
+        (h, s) = runStoreT g
 
 fromStore :: Store b a -> StaredStore b a
 fromStore st = StaredStore (right (StoreT (pure g) v))
@@ -33,13 +34,7 @@ fromStore st = StaredStore (right (StoreT (pure g) v))
   (g,v) = runStore st
   
 poss :: StaredStore b a -> [b]
-poss x = go x []
- where
-  go :: StaredStore b a -> [b] -> [b]
-  go = coproduct (const id) h . runStaredStore
-  h s = go g . (v:)
-   where
-    (g, v) = runStoreT s
+poss = getConstant . eekss (Constant . (:[]))
 
 seekss :: (b -> b) -> StaredStore b a -> StaredStore b a
 seekss f = coproduct (pure . runIdentity) h . runStaredStore
@@ -55,6 +50,6 @@ peekss f = extract . seekss f
 eekss :: Applicative f => (b -> f b) -> (StaredStore b a) -> f a
 eekss f (StaredStore s) = coproduct (pure . runIdentity) h s
   where
-    h st = eekss f g <*> f v
+    h st = f v <**> eekss f g
       where 
         (g, v) = runStoreT st
