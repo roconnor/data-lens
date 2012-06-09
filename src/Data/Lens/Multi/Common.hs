@@ -18,7 +18,7 @@ newtype MultiLens a b = MLens {runMLens :: a -> StaredStore b a}
 
 instance Category MultiLens where
   id = totalML id
-  MLens f . g = MLens $ g ^%%= f
+  MLens f . g = MLens $ g `fmodML` f
    
 -- totalLens is a homomorphism of categories; ie a functor.
 totalML :: Lens a b -> MultiLens a b
@@ -34,19 +34,18 @@ getML (MLens f) = poss . f
 modML :: MultiLens a b -> (b -> b) -> a -> a
 modML (MLens f) g = peekss g . f
 
-infixr 4 ^%%=
 -- | applicative modify
--- (id ^%%= h) = h
--- (f . g) ^%%= h) = (g ^%%= (f ^%%= h))
-(^%%=) :: Applicative f => MultiLens a b -> (b -> f b) -> a -> f a
-MLens f ^%%= g = eekss g . f 
+-- (id `fmodML` h) = h
+-- ((f . g) `fmodML`  h) = g `amodL` (f `amodL` h))
+fmodML :: Applicative f => MultiLens a b -> (b -> f b) -> a -> f a
+MLens f `fmodML` g = eekss g . f 
 
 frontPL :: MultiLens a b -> PartialLens a b
 frontPL (MLens f) = pLens $
   coproduct left (right . uncurry store . (extract *** id) . runStoreT) . runStaredStore . f
 
 reverseML :: MultiLens a b -> MultiLens a b
-reverseML l = MLens (forwards . (l ^%%= (Backwards . runMLens id)))
+reverseML l = MLens (forwards . (l `fmodML` (Backwards . runMLens id)))
 
 backPL :: MultiLens a b -> PartialLens a b
 backPL = frontPL . reverseML

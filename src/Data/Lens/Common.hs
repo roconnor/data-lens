@@ -7,6 +7,7 @@ module Data.Lens.Common
   , getL
   , setL
   , modL
+  , fmodL
   , mergeL
   , unzipL
   -- * Operator API
@@ -14,7 +15,6 @@ module Data.Lens.Common
   , (^.),  (^!)    -- getter -- :: a -> Lens a b -> b
   , (^=),  (^!=)   -- setter -- :: Lens a b -> b -> (a -> a)
   , (^%=), (^!%=)  -- modify -- :: Lens a b -> (b -> b) -> (a -> a)
-  , (^%%=)         -- modify -- :: Functor f => Lens a b -> (b -> f b) -> a -> f a
   -- * Pseudo-imperatives
   , (^+=), (^!+=) -- addition
   , (^-=), (^!-=) -- subtraction
@@ -98,6 +98,10 @@ Lens f ^!= b = \a -> case f a of
 modL :: Lens a b -> (b -> b) -> a -> a
 modL (Lens f) g = peeks g . f
 
+fmodL :: Functor f => Lens a b -> (b -> f b) -> a -> f a
+fmodL (Lens f) g = \a -> case f a of
+  StoreT (Identity h) b -> h <$> g b
+  
 mergeL :: Lens a c -> Lens b c -> Lens (Either a b) c
 Lens f `mergeL` Lens g = 
   Lens $ either (\a -> Left <$> f a) (\b -> Right <$> g b)
@@ -111,12 +115,6 @@ infixr 4 ^%=, ^!%=
 (^%=) = modL
 Lens f ^!%= g = \a -> case f a of
   StoreT (Identity h) b -> h $! g b
-
-infixr 4 ^%%=
--- | functorial modify
-(^%%=) :: Functor f => Lens a b -> (b -> f b) -> a -> f a
-Lens f ^%%= g = \a -> case f a of
-  StoreT (Identity h) b -> h <$> g b
 
 infixr 4 ^+=, ^!+=, ^-=, ^!-=, ^*=, ^!*=
 (^+=), (^!+=), (^-=), (^!-=), (^*=), (^!*=) :: Num b => Lens a b -> b -> a -> a
