@@ -8,6 +8,7 @@ module Data.Lens.Common
   , setL
   , modL
   , mergeL
+  , unzipL
   -- * Operator API
   , (^$),  (^$!)   -- getter -- :: Lens a b -> a -> b
   , (^.),  (^!)    -- getter -- :: a -> Lens a b -> b
@@ -101,6 +102,9 @@ mergeL :: Lens a c -> Lens b c -> Lens (Either a b) c
 Lens f `mergeL` Lens g = 
   Lens $ either (\a -> Left <$> f a) (\b -> Right <$> g b)
 
+unzipL :: Lens a (b, c) -> (Lens a b, Lens a c)
+unzipL f = (fstLens . f, sndLens . f)
+  
 infixr 4 ^%=, ^!%=
 -- | functional modify
 (^%=), (^!%=) :: Lens a b -> (b -> b) -> a -> a

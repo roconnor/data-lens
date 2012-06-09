@@ -1,10 +1,10 @@
 module Data.Lens.Multi.Common where
 
-import Prelude hiding ((.), id, null)
+import Prelude hiding ((.), id)
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Category
-import Data.Lens.Common (Lens(..), sndLens)
+import Data.Lens.Common (Lens(..), fstLens, sndLens)
 import Data.Lens.Partial.Common (PartialLens, pLens, runPLens)
 import Control.Comonad
 import Control.Comonad.Trans.Store
@@ -17,16 +17,16 @@ import Control.Arrow ((***))
 newtype MultiLens a b = MLens {runMLens :: a -> StaredStore b a}
 
 instance Category MultiLens where
-  id = totalLens id
+  id = totalML id
   MLens f . g = MLens $ g ^%%= f
    
 -- totalLens is a homomorphism of categories; ie a functor.
-totalLens :: Lens a b -> MultiLens a b
-totalLens (Lens f) = MLens $ fromStore . f
+totalML :: Lens a b -> MultiLens a b
+totalML (Lens f) = MLens $ fromStore . f
 
 -- totalLens is a homomorphism of categories; ie a functor.
-partialLens :: PartialLens a b -> MultiLens a b
-partialLens l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
+partialML :: PartialLens a b -> MultiLens a b
+partialML l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
@@ -51,20 +51,26 @@ reverseML l = MLens (forwards . (l ^%%= (Backwards . runMLens id)))
 backPL :: MultiLens a b -> PartialLens a b
 backPL = frontPL . reverseML
 
+unzipML :: MultiLens a (b, c) -> (MultiLens a b, MultiLens a c)
+unzipML l = (totalML fstLens . l, totalML sndLens . l)
+
+isNullML :: MultiLens a b -> a -> Bool
+isNullML l = null . getML l
+
 -- Stock Multilenses
 
-traversableLens :: (Traversable f) => MultiLens (f a) a
-traversableLens = MLens $ traverse (runMLens id)
+traversableML :: (Traversable f) => MultiLens (f a) a
+traversableML = MLens $ traverse (runMLens id)
 
-listLens :: MultiLens [a] a
-listLens = traversableLens
+listML :: MultiLens [a] a
+listML = traversableML
 
-lookupByL :: (k -> Bool) -> MultiLens [(k,v)] v
-lookupByL p = partialLens keyPL . listLens
+lookupByML :: (k -> Bool) -> MultiLens [(k,v)] v
+lookupByML p = partialML keyPL . listML
   where
     keyPL = pLens f
     f (k,v) | p k = right (runLens sndLens (k,v))
             | otherwise = left (Identity (k,v))
 
-lookupL :: (Eq k) => k -> MultiLens [(k,v)] v
-lookupL k = lookupByL (k==)
+lookupML :: (Eq k) => k -> MultiLens [(k,v)] v
+lookupML k = lookupByML (k==)

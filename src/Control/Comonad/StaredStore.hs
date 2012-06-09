@@ -53,3 +53,6 @@ eekss f (StaredStore s) = coproduct (pure . runIdentity) h s
     h st = f v <**> eekss f g
       where 
         (g, v) = runStoreT st
+        
+isEmptyss :: StaredStore b a -> Bool
+isEmptyss (StaredStore s) = coproduct (const True) (const False) s

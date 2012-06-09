@@ -4,7 +4,7 @@ import Prelude hiding ((.), id, null, any, all)
 import Control.Applicative
 import Control.Category
 import Control.Category.Product
-import Data.Lens.Common (Lens(..))
+import Data.Lens.Common (Lens(..), fstLens, sndLens)
 import Control.Comonad.Trans.Store
 import Data.Foldable (any, all)
 import Data.Functor.Identity
@@ -22,18 +22,18 @@ runPLens :: PartialLens a b -> a -> (Coproduct Identity (Store b)) a
 runPLens (PLens f) a = maybe (left (Identity a)) right (f a)
 
 instance Category PartialLens where
-  id = totalLens id
+  id = totalPL id
   PLens f . PLens g = PLens $ \a -> do
       (StoreT wba b) <- g a 
       (StoreT wcb c) <- f b
       return (StoreT ((.) <$> wba <*> wcb) c)
 
-null :: PartialLens a b
-null = PLens (const Nothing)
+nullPL :: PartialLens a b
+nullPL = PLens (const Nothing)
 
--- totalLens is a homomorphism of categories; ie a functor.
-totalLens :: Lens a b -> PartialLens a b
-totalLens (Lens f) = PLens (Just . f)
+-- totalPL is a homomorphism of categories; ie a functor.
+totalPL :: Lens a b -> PartialLens a b
+totalPL (Lens f) = PLens (Just . f)
 
 -- * Functional API
 
@@ -52,12 +52,18 @@ mergePL :: PartialLens a c -> PartialLens b c -> PartialLens (Either a b) c
 (PLens f) `mergePL` (PLens g) =
   PLens $ either (\a -> (fmap Left) <$> f a) (\b -> (fmap Right) <$> g b)
 
+unzipPL :: PartialLens a (b, c) -> (PartialLens a b, PartialLens a c)
+unzipPL f = (totalPL fstLens . f, totalPL sndLens . f)
+  
 -- If the Partial is null.
-nullPL :: PartialLens a b -> a -> Bool
-nullPL l = isNothing . getPL l
+isNullPL :: PartialLens a b -> a -> Bool
+isNullPL l = isNothing . getPL l
 
 getorEmptyPL :: (Monoid o) => PartialLens a b -> (b -> o) -> a -> o
 getorEmptyPL l p = maybe mempty p . getPL l
+
+emptyPL :: Monoid b => PartialLens a b -> a -> b
+emptyPL = flip getorEmptyPL id
 
 -- returns 0 in case of null
 sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
@@ -125,25 +131,25 @@ l ^/= r = l ^%= (/ r)
 
 -- * Stock partial lenses
 
-justLens :: PartialLens (Maybe a) a
-justLens = PLens $ \ma -> do
+justPL :: PartialLens (Maybe a) a
+justPL = PLens $ \ma -> do
   a <- ma
   return (store Just a) 
 
-leftLens :: PartialLens (Either a b) a
-leftLens = PLens $ either (Just . store Left) (const Nothing)
+leftPL :: PartialLens (Either a b) a
+leftPL = PLens $ either (Just . store Left) (const Nothing)
 
-rightLens :: PartialLens (Either a b) b
-rightLens = PLens $ either (const Nothing) (Just . store Right)
+rightPL :: PartialLens (Either a b) b
+rightPL = PLens $ either (const Nothing) (Just . store Right)
 
-headLens :: PartialLens [a] a
-headLens = PLens f
+headPL :: PartialLens [a] a
+headPL = PLens f
  where
   f [] = Nothing
   f (h:t) = Just (store (:t) h)
 
-tailLens :: PartialLens [a] [a]
-tailLens = PLens f
+tailPL :: PartialLens [a] [a]
+tailPL = PLens f
  where
   f [] = Nothing
   f (h:t) = Just (store (h:) t)
@@ -157,11 +163,11 @@ nthLens n | n < 0  = null
 
 -- setPL does not insert into a Map! it only modifies a value if the key already exists in the map
 mapPLens :: Ord k => k -> PartialLens (Map.Map k v) v
-mapPLens k = justLens . totalLens (mapLens k)
+mapPLens k = justLens . totalPL (mapLens k)
 
 -- setPL does not insert into a IntMap! it only modifies a value if the key already exists in the map
 intMapPLens :: Int -> PartialLens (IntMap v) v
-intMapPLens k = justLens . totalLens (intMapLens k)
+intMapPLens k = justLens . totalPL (intMapLens k)
 -}
 
 instance Tensor PartialLens where
