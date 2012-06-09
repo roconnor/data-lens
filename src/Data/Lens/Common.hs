@@ -2,7 +2,7 @@ module Data.Lens.Common
   ( Lens(..)
   -- * Lens construction
   , lens -- build a lens from a getter and setter
-  , iso  -- build a lens from an isomorphism
+  , isoL -- build a lens from an isomorphism
   -- * Functional API
   , getL
   , setL
@@ -36,6 +36,7 @@ import Control.Category.Product
 import Data.Functor.Identity
 import Data.Functor.Apply
 import Data.Semigroupoid
+import Data.Isomorphism
 import Prelude hiding ((.), id)
 import Data.IntMap (IntMap)
 import qualified Data.Map as Map
@@ -66,8 +67,8 @@ lens :: (a -> b) -> (b -> a -> a) -> Lens a b
 lens get set = Lens $ \a -> store (`set` a) (get a)
 
 -- | build a lens out of an isomorphism
-iso :: (a -> b) -> (b -> a) -> Lens a b
-iso f g = Lens (store g . f)
+isoL :: Iso (->) a b -> Lens a b
+isoL f = Lens (store (project f) . (embed f))
 
 -- | Gets the getter function from a lens.
 getL :: Lens a b -> a -> b
