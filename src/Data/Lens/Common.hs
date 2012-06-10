@@ -16,12 +16,12 @@ module Data.Lens.Common
   , (^=), (^!=), (^%=), (^!%=), (^+=), (^!+=), (^-=), (^!-=), (^*=), (^!*=)
   , (^/=), (^!/=), (^&&=), (^||=), (^!&&=), (^!||=)
   -- * Stock lenses
-  , fstLens
-  , sndLens
-  , mapLens
-  , intMapLens
-  , setLens
-  , intSetLens
+  , fstL
+  , sndL
+  , mapL
+  , intMapL
+  , setL
+  , intSetL
   ) where
 
 import Control.Applicative
@@ -98,35 +98,35 @@ Lens f `mergeL` Lens g =
   Lens $ either (\a -> Left <$> f a) (\b -> Right <$> g b)
 
 unzipL :: Lens a (b, c) -> (Lens a b, Lens a c)
-unzipL f = (fstLens . f, sndLens . f)
+unzipL f = (fstL . f, sndL . f)
   
 -- * Stock lenses
 
-fstLens :: Lens (a,b) a
-fstLens = Lens $ \(a,b) -> store (\ a' -> (a', b)) a
+fstL :: Lens (a,b) a
+fstL = Lens $ \(a,b) -> store (\ a' -> (a', b)) a
 
-sndLens :: Lens (a,b) b
-sndLens = Lens $ \(a,b) -> store (\ b' -> (a, b')) b
+sndL :: Lens (a,b) b
+sndL = Lens $ \(a,b) -> store (\ b' -> (a, b')) b
 
-mapLens :: Ord k => k -> Lens (Map k v) (Maybe v)
-mapLens k = Lens $ \m -> store (\mv -> case mv of
+mapL :: Ord k => k -> Lens (Map k v) (Maybe v)
+mapL k = Lens $ \m -> store (\mv -> case mv of
     Nothing -> Map.delete k m
     Just v' -> Map.insert k v' m
   ) (Map.lookup k m)
 
-intMapLens :: Int -> Lens (IntMap v) (Maybe v)
-intMapLens k = Lens $ \m -> store (\mv -> case mv of
+intMapL :: Int -> Lens (IntMap v) (Maybe v)
+intMapL k = Lens $ \m -> store (\mv -> case mv of
     Nothing -> IntMap.delete k m
     Just v' -> IntMap.insert k v' m
   ) (IntMap.lookup k m)
 
-setLens :: Ord k => k -> Lens (Set k) Bool
-setLens k = Lens $ \m -> store (\mv ->
+setL :: Ord k => k -> Lens (Set k) Bool
+setL k = Lens $ \m -> store (\mv ->
     if mv then Set.insert k m else Set.delete k m
   ) (Set.member k m)
 
-intSetLens :: Int -> Lens IntSet Bool
-intSetLens k = Lens $ \m -> store (\mv ->
+intSetL :: Int -> Lens IntSet Bool
+intSetL k = Lens $ \m -> store (\mv ->
     if mv then IntSet.insert k m else IntSet.delete k m
   ) (IntSet.member k m)
 

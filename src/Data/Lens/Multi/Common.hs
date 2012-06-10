@@ -4,7 +4,7 @@ import Prelude hiding ((.), id)
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Category
-import Data.Lens.Common (Lens(..), fstLens, sndLens)
+import Data.Lens.Common (Lens(..), fstL, sndL)
 import Data.Lens.Partial.Common (PartialLens, pLens, runPLens)
 import Data.Lens.Mutator
 import Control.Comonad
@@ -52,7 +52,7 @@ backPL :: MultiLens a b -> PartialLens a b
 backPL = frontPL . reverseML
 
 unzipML :: MultiLens a (b, c) -> (MultiLens a b, MultiLens a c)
-unzipML l = (totalML fstLens . l, totalML sndLens . l)
+unzipML l = (totalML fstL . l, totalML sndL . l)
 
 isNullML :: MultiLens a b -> a -> Bool
 isNullML l = null . getML l
@@ -69,7 +69,7 @@ lookupByML :: (k -> Bool) -> MultiLens [(k,v)] v
 lookupByML p = partialML keyPL . listML
   where
     keyPL = pLens f
-    f (k,v) | p k = right (runLens sndLens (k,v))
+    f (k,v) | p k = right (runLens sndL (k,v))
             | otherwise = left (Identity (k,v))
 
 lookupML :: (Eq k) => k -> MultiLens [(k,v)] v
