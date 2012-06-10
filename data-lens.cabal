@@ -41,6 +41,7 @@ library
   exposed-modules:
     Data.Lens.Common
     Data.Lens.Lazy
+    Data.Lens.Lazy.Void
     Data.Lens.Strict
     Data.Lens.Partial.Common
     Data.Lens.Partial.Lazy
