@@ -5,21 +5,16 @@ module Data.Lens.Common
   , isoL -- build a lens from an isomorphism
   -- * Functional API
   , getL
-  , setL
-  , modL
   , fmodL
   , mergeL
   , unzipL
   -- * Operator API
-  , (^$),  (^$!)   -- getter -- :: Lens a b -> a -> b
-  , (^.),  (^!)    -- getter -- :: a -> Lens a b -> b
-  , (^=),  (^!=)   -- setter -- :: Lens a b -> b -> (a -> a)
-  , (^%=), (^!%=)  -- modify -- :: Lens a b -> (b -> b) -> (a -> a)
-  -- * Pseudo-imperatives
-  , (^+=), (^!+=) -- addition
-  , (^-=), (^!-=) -- subtraction
-  , (^*=), (^!*=) -- multiplication
-  , (^/=), (^!/=) -- division
+  , (^$), (^$!)   -- getter -- :: Lens a b -> a -> b
+  , (^.), (^!)    -- getter -- :: a -> Lens a b -> b
+  -- * Mutators
+  , set, setStrict, modify, modifyStrict
+  , (^=), (^!=), (^%=), (^!%=), (^+=), (^!+=), (^-=), (^!-=), (^*=), (^!*=)
+  , (^/=), (^!/=), (^&&=), (^||=), (^!&&=), (^!||=)
   -- * Stock lenses
   , fstLens
   , sndLens
@@ -37,6 +32,7 @@ import Data.Functor.Identity
 import Data.Functor.Apply
 import Data.Semigroupoid
 import Data.Isomorphism
+import Data.Lens.Mutator
 import Prelude hiding ((.), id)
 import Data.IntMap (IntMap)
 import qualified Data.Map as Map
@@ -64,7 +60,7 @@ instance Category Lens where
 
 -- | build a lens out of a getter and setter
 lens :: (a -> b) -> (b -> a -> a) -> Lens a b
-lens get set = Lens $ \a -> store (`set` a) (get a)
+lens getter setter = Lens $ \a -> store (`setter` a) (getter a)
 
 -- | build a lens out of an isomorphism
 isoL :: Iso (->) a b -> Lens a b
@@ -85,19 +81,13 @@ infixl 9 ^., ^!
 a ^. Lens f = pos (f a)
 a ^! Lens f = pos (f $! a)
 
--- | Gets the setter function from a lens.
-setL :: Lens a b -> b -> a -> a
-setL (Lens f) b = peek b . f
-
-infixr 4 ^=, ^!=
-(^=), (^!=) :: Lens a b -> b -> a -> a
-(^=) = setL
-Lens f ^!= b = \a -> case f a of
-  StoreT (Identity g) _ -> g $! b
-
--- | Gets the modifier function from a lens.
-modL :: Lens a b -> (b -> b) -> a -> a
-modL (Lens f) g = peeks g . f
+instance Mutator Lens where
+  set (Lens f) b = peek b . f
+  setStrict (Lens f) b = \a -> case f a of
+    StoreT (Identity g) _ -> g $! b
+  modify (Lens f) g = peeks g . f
+  modifyStrict (Lens f) g = \a -> case f a of
+    StoreT (Identity h) b -> h $! g b
 
 fmodL :: Functor f => Lens a b -> (b -> f b) -> a -> f a
 fmodL (Lens f) g = \a -> case f a of
@@ -110,27 +100,6 @@ Lens f `mergeL` Lens g =
 unzipL :: Lens a (b, c) -> (Lens a b, Lens a c)
 unzipL f = (fstLens . f, sndLens . f)
   
-infixr 4 ^%=, ^!%=
--- | functional modify
-(^%=), (^!%=) :: Lens a b -> (b -> b) -> a -> a
-(^%=) = modL
-Lens f ^!%= g = \a -> case f a of
-  StoreT (Identity h) b -> h $! g b
-
-infixr 4 ^+=, ^!+=, ^-=, ^!-=, ^*=, ^!*=
-(^+=), (^!+=), (^-=), (^!-=), (^*=), (^!*=) :: Num b => Lens a b -> b -> a -> a
-l ^+= n = l ^%= (+ n)
-l ^-= n = l ^%= subtract n
-l ^*= n = l ^%= (* n)
-l ^!+= n = l ^!%= (+ n)
-l ^!-= n = l ^!%= subtract n
-l ^!*= n = l ^!%= (* n)
-
-infixr 4 ^/=, ^!/=
-(^/=), (^!/=) :: Fractional b => Lens a b -> b -> a -> a
-l ^/= r = l ^%= (/ r)
-l ^!/= r = l ^!%= (/ r)
-
 -- * Stock lenses
 
 fstLens :: Lens (a,b) a

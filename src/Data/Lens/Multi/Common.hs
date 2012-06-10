@@ -6,6 +6,7 @@ import Control.Applicative.Backwards
 import Control.Category
 import Data.Lens.Common (Lens(..), fstLens, sndLens)
 import Data.Lens.Partial.Common (PartialLens, pLens, runPLens)
+import Data.Lens.Mutator
 import Control.Comonad
 import Control.Comonad.Trans.Store
 import Control.Comonad.StaredStore
@@ -31,8 +32,8 @@ partialML l = MLens $ coproduct (pure . runIdentity) fromStore . runPLens l
 getML :: MultiLens a b -> a -> [b]
 getML (MLens f) = poss . f
 
-modML :: MultiLens a b -> (b -> b) -> a -> a
-modML (MLens f) g = peekss g . f
+instance Mutator MultiLens where
+  modify (MLens f) g = peekss g . f
 
 -- | applicative modify
 -- (id `fmodML` h) = h

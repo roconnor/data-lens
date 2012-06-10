@@ -51,6 +51,8 @@ library
     -- Data.Lens.Multi.Strict
     Control.Comonad.StaredStore
     Control.Category.Product
+  other-Modules:
+    Data.Lens.Mutator
 
   ghc-options:      -Wall
 

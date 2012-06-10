@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Category
 import Control.Category.Product
 import Data.Lens.Common (Lens(..), fstLens, sndLens)
+import Data.Lens.Mutator
 import Control.Comonad.Trans.Store
 import Data.Foldable (any, all)
 import Data.Functor.Identity
@@ -84,43 +85,9 @@ allPL l p =
 trySetPL :: PartialLens a b -> a -> Maybe (b -> a)
 trySetPL (PLens f) a = flip peek <$> f a
 
--- If the PartialLens is null, then setPL returns the identity function.
-setPL :: PartialLens a b -> b -> a -> a
-setPL (PLens f) b a = maybe a (peek b) (f a)
-
--- If the PartialLens is null, then setPL returns the identity function.
-modPL :: PartialLens a b -> (b -> b) -> a -> a
-modPL (PLens f) g a = maybe a (peeks g) (f a)
-
--- * Operator API
-
-infixr 0 ^$
-(^$) :: PartialLens a b -> a -> Maybe b
-(^$) = getPL
-
-infixl 9 ^.
-(^.) :: a -> PartialLens a b -> Maybe b
-(^.) = flip getPL
-
-infixr 4 ^=
-(^=) :: PartialLens a b -> b -> a -> a
-(^=) = setPL
-
-infixr 4 ^%=
-(^%=) :: PartialLens a b -> (b -> b) -> a -> a
-(^%=) = modPL
-
--- * Pseudo-imperatives
-
-infixr 4 ^+=, ^-=, ^*=
-(^+=), (^-=), (^*=) :: Num b => PartialLens a b -> b -> a -> a
-l ^+= n = l ^%= (+ n)
-l ^-= n = l ^%= subtract n
-l ^*= n = l ^%= (* n)
-
-infixr 4 ^/=
-(^/=) :: Fractional b => PartialLens a b -> b -> a -> a
-l ^/= r = l ^%= (/ r)
+instance Mutator PartialLens where
+  set (PLens f) b a = maybe a (peek b) (f a)
+  modify (PLens f) g a = maybe a (peeks g) (f a)
 
 -- * Stock partial lenses
 
