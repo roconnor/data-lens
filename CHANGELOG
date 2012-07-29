@@ -1,4 +1,11 @@
+2.10.2 (Changes from 2.10.1)
+=========================
+* Bump dependency on comonad-transformers
+* Bump dependency on containers
+* Bump dependency on semigroupoids
+
 2.10.1 (Changes from 2.10)
+=========================
 * Bump dependency on comonad
 
 2.10 (Changes from 2.9.0)
