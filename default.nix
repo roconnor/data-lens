@@ -2,9 +2,12 @@
 , hp ? pkgs.haskellPackages
 }:
 
-hp.cabal.mkDerivation (self: {
-  pname = "data-lens";
-  version = "2.10.6";
-  src = pkgs.lib.sourceFilesBySuffices ./. [".hs" ".cabal" "CHANGELOG" "LICENSE"];
-  buildDepends = [ hp.comonad hp.semigroupoids ];
-})
+hp.callPackage
+ ({ mkDerivation, comonad, semigroupoids }:
+  mkDerivation {
+   pname = "data-lens";
+   version = "2.10.7";
+   src = pkgs.lib.sourceFilesBySuffices ./. [".hs" ".cabal" "CHANGELOG" "LICENSE"];
+   buildDepends = [ comonad semigroupoids ];
+   license = pkgs.lib.licenses.bsd3;
+ }) {}
