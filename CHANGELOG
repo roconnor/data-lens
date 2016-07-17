@@ -1,3 +1,7 @@
+2.11.0.1 (Changes from 2.11)
+=========================
+* Bump lower bound on transformers
+
 2.11 (Changes from 2.10.7)
 =========================
 * Bump dependency on semigroupoids
