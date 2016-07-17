@@ -1,6 +1,6 @@
 name:               data-lens
 category:           Control, Comonads
-version:            2.10.7
+version:            2.11
 license:            BSD3
 cabal-version:      >= 1.6
 license-file:       LICENSE
@@ -18,21 +18,13 @@ source-repository head
   type: git
   location: git://github.com/roconnor/data-lens.git
 
-flag DeriveDataTypeable
-  manual: False
-  default: True
-
 library
   build-depends:
     base                 >= 4       && < 5,
-    comonad              >= 4.0     && < 4.3,
+    comonad              >= 4.0     && < 5.1,
     containers           >= 0.3     && < 0.6,
-    semigroupoids        >= 4.0     && < 5.1,
-    transformers         >= 0.2.0   && < 0.5
-
-  if flag(DeriveDataTypeable)
-    extensions: DeriveDataTypeable
-    cpp-options: -DLANGUAGE_DeriveDataTypeable
+    semigroupoids        >= 4.0     && < 5.2,
+    transformers         >= 0.2.0   && < 0.6
 
   extensions: CPP
 

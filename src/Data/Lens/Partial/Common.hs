@@ -8,20 +8,20 @@ import Data.Lens.Common (Lens(..))
 import Control.Comonad.Trans.Store
 import Data.Foldable (any, all)
 import Data.Functor.Identity
-import Data.Functor.Coproduct
+import Data.Functor.Sum
 import Data.Maybe
-import Data.Monoid
+import qualified Data.Monoid (Sum(..), Product(..))
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
 
--- A partial lens is a coalgebra for the Coproduct Identity (Store b) comonad.
-runPLens :: PartialLens a b -> a -> (Coproduct Identity (Store b)) a
-runPLens (PLens f) a = maybe (left (Identity a)) right (f a)
+-- A partial lens is a coalgebra for the Sum Identity (Store b) comonad.
+runPLens :: PartialLens a b -> a -> (Sum Identity (Store b)) a
+runPLens (PLens f) a = maybe (InL (Identity a)) InR (f a)
 
 instance Category PartialLens where
   id = totalLens id
   PLens f . PLens g = PLens $ \a -> do
-      (StoreT wba b) <- g a 
+      (StoreT wba b) <- g a
       (StoreT wcb c) <- f b
       return (StoreT ((.) <$> wba <*> wcb) c)
 
@@ -58,11 +58,11 @@ getorEmptyPL l p = maybe mempty p . getPL l
 
 -- returns 0 in case of null
 sumPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
-sumPL l p = getSum . getorEmptyPL l (Sum . p)
+sumPL l p = Data.Monoid.getSum . getorEmptyPL l (Data.Monoid.Sum . p)
 
 -- returns 1 in case of null
 productPL :: (Num c) => PartialLens a b -> (b -> c) -> a -> c
-productPL l p = getProduct . getorEmptyPL l (Product . p)
+productPL l p = Data.Monoid.getProduct . getorEmptyPL l (Data.Monoid.Product . p)
 
 anyPL :: PartialLens a b -> (b -> Bool) -> a -> Bool
 anyPL l p =
@@ -125,7 +125,7 @@ l ^/= r = l ^%= (/ r)
 justLens :: PartialLens (Maybe a) a
 justLens = PLens $ \ma -> do
   a <- ma
-  return (store Just a) 
+  return (store Just a)
 
 leftLens :: PartialLens (Either a b) a
 leftLens = PLens $ either (Just . store Left) (const Nothing)

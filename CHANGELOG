@@ -1,3 +1,11 @@
+2.11 (Changes from 2.10.7)
+=========================
+* Bump dependency on semigroupoids
+* Bump dependency on transformers
+* Bump dependency on comonad
+  * Moving to comonad 0.5 requires moving from Data.Functor.Coproduct to Data.Functor.Sum.
+    This requires a change in the signature for Data.Lens.Partial.Common.runPLens.
+
 2.10.7 (Changes from 2.10.6)
 =========================
 * Bump dependency on semigroupoids

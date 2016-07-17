@@ -6,7 +6,7 @@ hp.callPackage
  ({ mkDerivation, comonad, semigroupoids }:
   mkDerivation {
    pname = "data-lens";
-   version = "2.10.7";
+   version = "2.11";
    src = pkgs.lib.sourceFilesBySuffices ./. [".hs" ".cabal" "CHANGELOG" "LICENSE"];
    buildDepends = [ comonad semigroupoids ];
    license = pkgs.lib.licenses.bsd3;
