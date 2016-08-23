@@ -10,6 +10,7 @@ import Data.Foldable (any, all)
 import Data.Functor.Identity
 import Data.Functor.Sum
 import Data.Maybe
+import Data.Monoid (Monoid, mempty)
 import qualified Data.Monoid (Sum(..), Product(..))
 
 newtype PartialLens a b = PLens (a -> Maybe (Store b a))
