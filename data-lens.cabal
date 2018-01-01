@@ -1,6 +1,6 @@
 name:               data-lens
 category:           Control, Comonads
-version:            2.11.1
+version:            2.11.2
 license:            BSD3
 cabal-version:      >= 1.6
 license-file:       LICENSE
@@ -23,7 +23,7 @@ library
     base                 >= 4       && < 5,
     comonad              >= 4.0     && < 5.1,
     containers           >= 0.3     && < 0.6,
-    semigroupoids        >= 4.0     && < 5.2,
+    semigroupoids        >= 4.0     && < 5.3,
     transformers         >= 0.4     && < 0.6
 
   extensions: CPP

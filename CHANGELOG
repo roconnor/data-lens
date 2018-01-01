@@ -1,3 +1,7 @@
+2.11.2 (Changes from 2.11.2)
+=========================
+* Bump dependency on semigroupoids
+
 2.11.1 (Changes from 2.11.0.1)
 =========================
 * Missing imports prevened data-lens from working on base earlier than 4.8.  This is now fixed.
